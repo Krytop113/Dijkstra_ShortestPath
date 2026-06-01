@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tugas Besar - Dijkstra</title>
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <h1>Pembangkit Graf & Kontrol Distribusi</h1>
+            <p>Atur parameter untuk menghasilkan graf acak (Adjacency Matrix).</p>
+        </header>
+
+        <div class="card">
+            <form class="form-group-inline" method="post" action="{{ url_for('home') }}">
+                <div class="input-box">
+                    <label for="numNodes">Jumlah Simpul (Nodes)</label>
+                    <input type="number" id="numNodes" name="numNodes" value="{{ num_nodes }}" min="2" max="50">
+                </div>
+                <div class="input-box">
+                    <label for="depotNode">Simpul Gudang (Depot)</label>
+                    <input type="number" id="depotNode" name="depotNode" value="{{ depot_node }}" min="0">
+                </div>
+                <button class="btn" type="submit">Generate Graf</button>
+            </form>
+        </div>
+
+        <div class="card">
+            {% if graph %}
+                <div class="result-card animate-in">
+                    <h3>Matriks Ketetanggaan ({{ graph|length }} x {{ graph|length }}) - Nilai 0 berarti tidak terhubung</h3>
+                    <div class="matrix-wrap">
+                        <table class="matrix">
+                            <thead>
+                                <tr>
+                                    <th></th>
+                                    {% for column in range(graph|length) %}
+                                        <th>{{ column }}</th>
+                                    {% endfor %}
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for row in graph %}
+                                    {% set row_index = loop.index0 %}
+                                    <tr>
+                                        <th>{{ row_index }}</th>
+                                        {% for weight in row %}
+                                            {% if row_index == loop.index0 %}
+                                                <td class="self">-</td>
+                                            {% elif weight > 0 %}
+                                                <td class="edge">{{ weight }}</td>
+                                            {% else %}
+                                                <td class="inf">0</td>
+                                            {% endif %}
+                                        {% endfor %}
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            {% else %}
+                <div class="empty-state">Belum ada graf yang dibuat. Silakan klik tombol 'Generate Graf'.</div>
+            {% endif %}
+        </div>
+    </div>
+
+    {% if message %}
+        <div class="toast-container">
+            <div class="toast {{ message_type }}">{{ message }}</div>
+        </div>
+    {% endif %}
+</body>
+
+</html>
