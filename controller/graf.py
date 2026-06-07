@@ -27,6 +27,24 @@ def generate_random_graph(num_nodes):
     return graph
 
 
+def create_graph_with_validation(num_nodes, depot_node):
+    if num_nodes < 2:
+        return None, depot_node, "Jumlah simpul minimal adalah 2.", "err"
+    if num_nodes > 50:
+        return None, depot_node, "Jumlah simpul maksimal adalah 50.", "err"
+
+    msg = "Graf berhasil dibuat."
+    msg_type = "success"
+    if depot_node >= num_nodes or depot_node < 0:
+        depot_node = 0
+        msg = "Simpul Depot tidak valid, otomatis diatur ke simpul 0. Graf berhasil dibuat."
+        msg_type = "err"
+
+    graph = generate_random_graph(num_nodes)
+    return graph, depot_node, msg, msg_type
+
+
+
 def import_graph_from_csv(uploaded_file):
     if not uploaded_file or uploaded_file.filename == "":
         return None, "Pilih file CSV terlebih dahulu.", "err"

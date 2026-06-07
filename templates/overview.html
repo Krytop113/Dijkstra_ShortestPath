@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Dijkstra Routing Overview</title>
+</head>
+
+<body>
+    <h1>Dijkstra & VRP Routing Simulation Overview</h1>
+    <p>
+        <a href="{{ url_for('home') }}">Kembali ke Graf</a>
+    </p>
+
+    <hr>
+
+    <h2>Informasi Graf & Kendaraan</h2>
+    <ul>
+        <li>Gudang Utama (Depot): Node {{ depot_node }}</li>
+        <li>Jumlah Simpul: {{ num_nodes }}</li>
+        <li>Kapasitas Maksimal Kendaraan: {{ stats.capacity }}</li>
+        <li>Total Muatan Terangkut: {{ stats.total_load }}</li>
+    </ul>
+
+    <h2>Ringkasan Hasil Pengiriman</h2>
+    <ul>
+        <li>Paket Berhasil Terkirim: {{ stats.success_count }}</li>
+        <li>Paket Gagal Terkirim: {{ stats.failed_count }}</li>
+    </ul>
+
+    <hr>
+
+    <h2>Log Perjalanan Kendaraan</h2>
+    {% if vehicle_log %}
+        <ol>
+            {% for log in vehicle_log %}
+                <li>{{ log }}</li>
+            {% endfor %}
+        </ol>
+    {% else %}
+        <p>Tidak ada pergerakan kendaraan.</p>
+    {% endif %}
+
+    <hr>
+
+    <h2>Daftar Status Pengiriman Paket</h2>
+    {% if package_paths %}
+        <table border="1" cellpadding="5" cellspacing="0">
+            <thead>
+                <tr>
+                    <th>ID Paket</th>
+                    <th>Asal &rarr; Tujuan</th>
+                    <th>Prioritas</th>
+                    <th>Volume</th>
+                    <th>Deadline</th>
+                    <th>Status Pengiriman</th>
+                    <th>Waktu Tiba</th>
+                    <th>Jalur Ditempuh</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in package_paths %}
+                    <tr>
+                        <td>#{{ item.package.id }}</td>
+                        <td>Node {{ item.package.src }} &rarr; Node {{ item.package.dst }}</td>
+                        <td>P{{ item.package.priority }}</td>
+                        <td>{{ item.package.volume }}</td>
+                        <td>H{{ item.package.deadline }}</td>
+                        <td>
+                            {% if item.status == 'Success' %}
+                                <strong>Berhasil Terkirim</strong>
+                            {% elif item.status == 'Failed_Capacity' %}
+                                <em>Gagal Terkirim (Kapasitas Penuh)</em>
+                            {% elif item.status == 'Failed_Deadline' %}
+                                <em>Gagal Terkirim (Melebihi Deadline / Terlambat)</em>
+                            {% elif item.status == 'Failed_Unreachable' %}
+                                <em>Gagal Terkirim (Tujuan Tidak Terhubung)</em>
+                            {% else %}
+                                {{ item.status }}
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if item.arrival_time is not none %}
+                                {{ item.arrival_time }}
+                            {% else %}
+                                -
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if item.path %}
+                                {{ item.path|join(' -> ') }}
+                            {% else %}
+                                -
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p>Belum ada paket.</p>
+    {% endif %}
+
+    <hr>
+
+    <h2>Rute Terpendek Statis dari Gudang (Depot {{ depot_node }}) ke Semua Simpul</h2>
+    <table border="1" cellpadding="5" cellspacing="0">
+        <thead>
+            <tr>
+                <th>Ke Simpul</th>
+                <th>Jalur Terpendek</th>
+                <th>Jarak Terpendek</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in depot_paths %}
+                <tr>
+                    <td>Node {{ item.node }}</td>
+                    <td>
+                        {% if item.reachable %}
+                            {{ item.path|join(' -> ') }}
+                        {% else %}
+                            Tidak terhubung
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if item.reachable %}
+                            {{ item.distance }}
+                        {% else %}
+                            Infinity
+                        {% endif %}
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+
+</html>

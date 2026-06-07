@@ -1,16 +1,21 @@
 from flask import Flask, render_template, request, session
 
-from controller.graf import generate_random_graph, import_graph_from_csv
+from controller.graf import (
+    generate_random_graph,
+    import_graph_from_csv,
+    create_graph_with_validation,
+)
 from controller.package_manager import (
     add_package,
     clear_packages,
     load_sample_packages,
     remove_package,
+    filter_out_of_bounds_packages,
 )
+from controller.main import get_dijkstra_overview
 
 app = Flask(__name__)
 app.secret_key = "dev-secret-key"
-
 
 def parse_int(value, default):
     try:
@@ -34,58 +39,45 @@ def home():
         num_nodes = parse_int(request.form.get("numNodes"), num_nodes)
         depot_node = parse_int(request.form.get("depotNode"), depot_node)
 
-        if num_nodes < 2:
-            message = "Jumlah simpul minimal adalah 2."
-            message_type = "err"
-        elif num_nodes > 50:
-            message = "Jumlah simpul maksimal adalah 50."
-            message_type = "err"
-        else:
-            if depot_node >= num_nodes or depot_node < 0:
-                depot_node = 0
-                message = "Simpul Depot tidak valid, otomatis diatur ke simpul 0."
-                message_type = "err"
-
-            if action == "generate_graph":
+        if action == "generate_graph":
+            graph, depot_node, message, message_type = create_graph_with_validation(num_nodes, depot_node)
+            if graph is not None:
+                packages, removed_any = filter_out_of_bounds_packages(packages, num_nodes)
+                if removed_any:
+                    message = f"{message} Paket dengan node di luar graf ikut dihapus."
+        elif action == "import_graph":
+            graph, message, message_type = import_graph_from_csv(request.files.get("graphFile"))
+            if graph is not None:
+                num_nodes = len(graph)
+                if depot_node >= num_nodes or depot_node < 0:
+                    depot_node = 0
+                packages, removed_any = filter_out_of_bounds_packages(packages, num_nodes)
+                if removed_any:
+                    message = f"{message} Paket dengan node di luar graf ikut dihapus."
+        elif action == "add_package":
+            packages, package_counter, message, message_type = add_package(
+                packages=packages,
+                package_counter=package_counter,
+                num_nodes=num_nodes,
+                src=parse_int(request.form.get("pkgSrc"), 0),
+                dst=parse_int(request.form.get("pkgDst"), 0),
+                priority=parse_int(request.form.get("pkgPri"), 1),
+                volume=parse_int(request.form.get("pkgVol"), 1),
+                deadline=parse_int(request.form.get("pkgDead"), 1),
+            )
+        elif action == "remove_package":
+            package_id = parse_int(request.form.get("package_id"), 0)
+            packages = remove_package(packages, package_id)
+            message = "Paket berhasil dihapus."
+        elif action == "clear_packages":
+            packages, package_counter = clear_packages()
+            message = "Semua paket berhasil dihapus."
+        elif action == "load_sample_packages":
+            if graph is None or len(graph) != num_nodes:
                 graph = generate_random_graph(num_nodes)
-                message = message or "Graf berhasil dibuat."
-            elif action == "import_graph":
-                graph, message, message_type = import_graph_from_csv(request.files.get("graphFile"))
+            packages, package_counter = load_sample_packages(num_nodes)
+            message = "Paket contoh berhasil dimuat."
 
-                if graph is not None:
-                    num_nodes = len(graph)
-                    if depot_node >= num_nodes:
-                        depot_node = 0
-                    valid_packages = [
-                        package for package in packages
-                        if package["src"] < num_nodes and package["dst"] < num_nodes
-                    ]
-                    if len(valid_packages) != len(packages):
-                        message = f"{message} Paket dengan node di luar graf ikut dihapus."
-                    packages = valid_packages
-            elif action == "add_package":
-                packages, package_counter, message, message_type = add_package(
-                    packages=packages,
-                    package_counter=package_counter,
-                    num_nodes=num_nodes,
-                    src=parse_int(request.form.get("pkgSrc"), 0),
-                    dst=parse_int(request.form.get("pkgDst"), 0),
-                    priority=parse_int(request.form.get("pkgPri"), 1),
-                    volume=parse_int(request.form.get("pkgVol"), 1),
-                    deadline=parse_int(request.form.get("pkgDead"), 1),
-                )
-            elif action == "remove_package":
-                package_id = parse_int(request.form.get("package_id"), 0)
-                packages = remove_package(packages, package_id)
-                message = "Paket berhasil dihapus."
-            elif action == "clear_packages":
-                packages, package_counter = clear_packages()
-                message = "Semua paket berhasil dihapus."
-            elif action == "load_sample_packages":
-                if graph is None or len(graph) != num_nodes:
-                    graph = generate_random_graph(num_nodes)
-                packages, package_counter = load_sample_packages(num_nodes)
-                message = "Paket contoh berhasil dimuat."
 
         session["num_nodes"] = num_nodes
         session["depot_node"] = depot_node
@@ -101,6 +93,35 @@ def home():
         message_type=message_type,
         num_nodes=num_nodes,
         packages=packages,
+    )
+
+@app.route("/overview")
+def overview():
+    graph = session.get("graph")
+    packages = session.get("packages", [])
+    depot_node = session.get("depot_node", 0)
+
+    if not graph:
+        return render_template(
+            "tugas_besar.html",
+            depot_node=depot_node,
+            graph=graph,
+            message="Silakan buat atau impor graf terlebih dahulu sebelum melihat overview.",
+            message_type="err",
+            num_nodes=session.get("num_nodes", 6),
+            packages=packages,
+        )
+
+    results = get_dijkstra_overview(graph, packages, depot_node)
+
+    return render_template(
+        "overview.html",
+        depot_node=depot_node,
+        depot_paths=results["depot_paths"],
+        package_paths=results["package_paths"],
+        vehicle_log=results["vehicle_log"],
+        stats=results["stats"],
+        num_nodes=len(graph),
     )
 
 
