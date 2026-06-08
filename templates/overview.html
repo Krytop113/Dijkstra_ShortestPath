@@ -134,6 +134,78 @@
             {% endfor %}
         </tbody>
     </table>
+
+    <hr>
+
+    <h2>Status Konektivitas Graf dari Depot</h2>
+    <ul>
+        <li>Status: 
+            {% if connectivity.is_connected %}
+                <strong>Terhubung Sepenuhnya (Semua simpul dapat dijangkau dari Depot)</strong>
+            {% else %}
+                <strong style="color: red;">Tidak Terhubung Sepenuhnya</strong>
+            {% endif %}
+        </li>
+        {% if not connectivity.is_connected %}
+            <li>Simpul yang Tidak Dapat Dijangkau: 
+                {% for node in connectivity.unreachable_nodes %}
+                    <span style="color: red; font-weight: bold;">Node {{ node }}</span>{% if not loop.last %}, {% endif %}
+                {% endfor %}
+            </li>
+        {% endif %}
+    </ul>
+
+    <hr>
+
+    <h2>Pelacakan Iterasi Dijkstra Langkah-demi-Langkah (Sumber: Depot {{ depot_node }})</h2>
+    <table border="1" cellpadding="5" cellspacing="0">
+        <thead>
+            <tr>
+                <th>Langkah</th>
+                <th>Simpul Terpilih</th>
+                <th>Simpul Terkunjungi (Visited)</th>
+                <th>Larik Jarak (dist)</th>
+                <th>Larik Pendahulu (prev)</th>
+                <th>Penjelasan</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for step in dijkstra_steps %}
+                <tr>
+                    <td align="center">{{ step.step }}</td>
+                    <td align="center">
+                        {% if step.selected_node is not none %}
+                            <strong>Node {{ step.selected_node }}</strong>
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if step.visited %}
+                            {{ step.visited|join(', ') }}
+                        {% else %}
+                            Kosong
+                        {% endif %}
+                    </td>
+                    <td>
+                        [
+                        {% for d in step.dist %}
+                            {% if d >= 10**9 %}INF{% else %}{{ d }}{% endif %}{% if not loop.last %}, {% endif %}
+                        {% endfor %}
+                        ]
+                    </td>
+                    <td>
+                        [
+                        {% for p in step.prev %}
+                            {{ p }}{% if not loop.last %}, {% endif %}
+                        {% endfor %}
+                        ]
+                    </td>
+                    <td>{{ step.message }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
 </body>
 
 </html>

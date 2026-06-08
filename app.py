@@ -13,6 +13,7 @@ from controller.package_manager import (
     filter_out_of_bounds_packages,
 )
 from controller.main import get_dijkstra_overview
+from controller.dijkstra import dijkstra_with_steps
 
 app = Flask(__name__)
 app.secret_key = "dev-secret-key"
@@ -113,6 +114,7 @@ def overview():
         )
 
     results = get_dijkstra_overview(graph, packages, depot_node)
+    _, _, dijkstra_steps = dijkstra_with_steps(graph, depot_node)
 
     return render_template(
         "overview.html",
@@ -121,6 +123,8 @@ def overview():
         package_paths=results["package_paths"],
         vehicle_log=results["vehicle_log"],
         stats=results["stats"],
+        connectivity=results["connectivity"],
+        dijkstra_steps=dijkstra_steps,
         num_nodes=len(graph),
     )
 
