@@ -10,17 +10,17 @@
 
 <body class="bg-light">
     <main class="container py-4">
-        <header class="mb-4">
-            <h1 class="h3 text-primary mb-2">Dijkstra Shortest Path</h1>
-            <p class="text-secondary mb-0">Buat Terlebih dahulu jalur dan paket nya</p>
-        </header>
-
-        {% if message %}
-            <div class="alert alert-{{ 'danger' if message_type == 'err' else 'success' }} alert-dismissible fade show" role="alert">
-                {{ message }}
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        <header class="mb-4 d-flex justify-content-between align-items-center flex-wrap gap-3">
+            <div>
+                <h1 class="h3 text-primary mb-2">Dijkstra Shortest Path</h1>
+                <p class="text-secondary mb-0">Buat Terlebih dahulu jalur dan paket nya</p>
             </div>
-        {% endif %}
+            {% if graph %}
+                <a href="{{ url_for('overview') }}" class="btn btn-success shadow-sm px-4">
+                    Lihat Overview Dijkstra &rarr;
+                </a>
+            {% endif %}
+        </header>
 
         <section class="card shadow-sm mb-4">
             <div class="card-header bg-white">
