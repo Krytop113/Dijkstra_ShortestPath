@@ -533,7 +533,7 @@
                             label: `Node ${i}${isDepot ? '\n(Depot)' : ''}`,
                             shape: 'dot',
                             size: isDepot ? 25 : 20,
-                            font: { color: '#ffffff', face: 'system-ui', size: 14, bold: { color: '#ffffff' } }
+                            font: { color: '#212529', face: 'system-ui', size: 14, bold: { color: '#212529' } }
                         });
                     }
 
@@ -684,25 +684,22 @@
                             const distVal = stepData.dist[i];
                             const isReachable = distVal < 10**9;
 
-                            let bgColor = '#e9ecef';
-                            let borderColor = '#adb5bd';
-                            let fontColor = '#6c757d';
+                            let bgColor = '#f5f5f5';
+                            let borderColor = '#bdbdbd';
+                            let fontColor = '#212529';
                             let size = 18;
 
                             if (isSelected) {
-                                bgColor = '#ffc107';
-                                borderColor = '#ff9800';
-                                fontColor = '#212529';
+                                bgColor = '#ffe082';
+                                borderColor = '#ffb300';
                                 size = 26;
                             } else if (isVisited) {
-                                bgColor = '#198754';
-                                borderColor = '#146c43';
-                                fontColor = '#ffffff';
+                                bgColor = '#c8e6c9';
+                                borderColor = '#4caf50';
                                 size = 22;
                             } else if (isReachable) {
-                                bgColor = '#0d6efd';
-                                borderColor = '#0a58ca';
-                                fontColor = '#ffffff';
+                                bgColor = '#bbdefb';
+                                borderColor = '#2196f3';
                                 size = 20;
                             }
 
