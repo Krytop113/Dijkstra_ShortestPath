@@ -47,21 +47,23 @@
 
                 <hr class="my-4">
 
-                <form class="row g-3 align-items-end" method="post" action="{{ url_for('home') }}" enctype="multipart/form-data">
+                <form method="post" action="{{ url_for('home') }}" enctype="multipart/form-data">
                     <input type="hidden" name="action" value="import_graph">
                     <input type="hidden" name="numNodes" value="{{ num_nodes }}">
                     <input type="hidden" name="depotNode" value="{{ depot_node }}">
 
-                    <div class="col-md-10">
-                        <label class="form-label" for="graphFile">Import Graf dari CSV</label>
-                        <input class="form-control" type="file" id="graphFile" name="graphFile" accept=".csv,text/csv">
-                        <div class="form-text">
-                            Format: matrix adjacency CSV, atau baris pertama jumlah node lalu baris berikutnya matrix.
+                    <div class="row g-3 align-items-end">
+                        <div class="col-md-10">
+                            <label class="form-label" for="graphFile">Import Graf dari CSV</label>
+                            <input class="form-control" type="file" id="graphFile" name="graphFile" accept=".csv,text/csv">
+                        </div>
+
+                        <div class="col-md-2 d-grid">
+                            <button class="btn btn-outline-primary" type="submit">Import CSV</button>
                         </div>
                     </div>
-
-                    <div class="col-md-2 d-grid">
-                        <button class="btn btn-outline-primary" type="submit">Import CSV</button>
+                    <div class="form-text mt-2">
+                        Format: matrix adjacency CSV, atau baris pertama jumlah node lalu baris berikutnya matrix.
                     </div>
                 </form>
             </div>
@@ -329,6 +331,11 @@
                     };
 
                     const network = new vis.Network(container, data, options);
+
+                    // Disable physics after initial stabilization to prevent wiggling/shaking
+                    network.once('stabilized', function() {
+                        network.setOptions({ physics: { enabled: false } });
+                    });
                 } catch (err) {
                     console.error("Home visualizer failed:", err);
                 }

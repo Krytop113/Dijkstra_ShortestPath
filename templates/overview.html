@@ -609,6 +609,11 @@
 
                     const network = new vis.Network(container, data, options);
 
+                    // Disable physics after initial stabilization to prevent shaking during updates
+                    network.once('stabilized', function() {
+                        network.setOptions({ physics: { enabled: false } });
+                    });
+
                     // Step controller state
                     let currentStep = 0;
                     const maxStep = dijkstraSteps.length - 1;
@@ -786,7 +791,8 @@
                         if (currentStep === maxStep) {
                             goToStep(0);
                         }
-                        const speed = parseInt(speedSlider.value);
+                        // Invert the speed value: left (500) becomes 3000ms delay (slow), right (3000) becomes 500ms delay (fast)
+                        const speed = 3500 - parseInt(speedSlider.value);
                         playInterval = setInterval(playNext, speed);
                         playIcon.textContent = 'Pause';
                         btnPlayPause.classList.remove('btn-primary');
