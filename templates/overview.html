@@ -377,6 +377,74 @@
             </div>
         </section>
 
+        <section class="card shadow-sm mb-4">
+            <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                <h2 class="h5 mb-0">Visualisasi Interaktif Dijkstra</h2>
+                <span class="badge text-bg-primary" id="step-badge">Langkah 0 / 0</span>
+            </div>
+            <div class="card-body">
+                <div class="row g-4">
+                    <!-- Left: Graph Visualization Container -->
+                    <div class="col-lg-8">
+                        <div id="dijkstra-graph-container" style="height: 480px; border: 1px solid #dee2e6; border-radius: .375rem; background-color: #f8f9fa;"></div>
+                    </div>
+                    
+                    <!-- Right: Step-by-Step Controls and Status Details -->
+                    <div class="col-lg-4 d-flex flex-column justify-content-between">
+                        <div class="border rounded p-3 bg-light mb-3 flex-grow-1">
+                            <h3 class="h6 text-secondary border-bottom pb-2 mb-3">Informasi Langkah</h3>
+                            
+                            <div class="mb-3">
+                                <span class="small text-secondary fw-semibold">Status Simpul:</span>
+                                <div class="d-flex flex-wrap gap-2 mt-1">
+                                    <span class="badge" style="background-color: #ffc107; color: #212529; font-size: 0.75rem;">Terpilih (Active)</span>
+                                    <span class="badge" style="background-color: #198754; color: #ffffff; font-size: 0.75rem;">Terkunjungi</span>
+                                    <span class="badge" style="background-color: #0d6efd; color: #ffffff; font-size: 0.75rem;">Terjangkau</span>
+                                    <span class="badge" style="background-color: #e9ecef; color: #6c757d; border: 1px solid #adb5bd; font-size: 0.75rem;">Belum Dijangkau</span>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <span class="small text-secondary fw-semibold">Penjelasan Langkah:</span>
+                                <p class="mb-0 mt-1 text-dark fw-medium" id="step-message" style="font-size: 0.9rem; line-height: 1.4; min-height: 60px;"></p>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <span class="small text-secondary fw-semibold">Detail Jarak (dist):</span>
+                                <div class="font-monospace small mt-1 p-2 bg-white border rounded" id="step-distances" style="max-height: 150px; overflow-y: auto;">
+                                    <!-- Dynamic list of distances -->
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Control panel buttons -->
+                        <div class="border rounded p-3 bg-light">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <button class="btn btn-sm btn-outline-secondary" id="btn-first" title="Awal">&laquo;</button>
+                                <button class="btn btn-sm btn-outline-secondary" id="btn-prev" title="Sebelumnya">&lsaquo;</button>
+                                
+                                <button class="btn btn-primary px-3" id="btn-play-pause">
+                                    <span id="play-icon">Play</span>
+                                </button>
+                                
+                                <button class="btn btn-sm btn-outline-secondary" id="btn-next" title="Berikutnya">&rsaquo;</button>
+                                <button class="btn btn-sm btn-outline-secondary" id="btn-last" title="Akhir">&raquo;</button>
+                            </div>
+                            
+                            <div class="d-flex align-items-center gap-2 mb-2">
+                                <span class="small text-secondary" style="font-size: 0.8rem; white-space: nowrap;">Speed:</span>
+                                <input type="range" class="form-range" id="speed-slider" min="500" max="3000" step="250" value="1500" title="Kecepatan Autoplay">
+                            </div>
+                            
+                            <div>
+                                <input type="range" class="form-range" id="step-slider" min="0" max="0" value="0">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
         <section class="card shadow-sm">
             <div class="card-header bg-white">
                 <h2 class="h5 mb-0">Pelacakan Iterasi Dijkstra Langkah-demi-Langkah</h2>
@@ -396,7 +464,7 @@
                         </thead>
                         <tbody>
                             {% for step in dijkstra_steps %}
-                                <tr>
+                                <tr id="dijkstra-step-row-{{ step.step }}" style="cursor: pointer;" onclick="goToDijkstraStep({{ step.step }})">
                                     <td class="text-center fw-semibold">{{ step.step }}</td>
                                     <td class="text-center">
                                         {% if step.selected_node is not none %}
@@ -437,6 +505,347 @@
     </main>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vis-network@9.1.9/standalone/umd/vis-network.min.js"></script>
+    <script>
+        (function() {
+            function initVisualizer() {
+                const graphData = {{ graph|tojson|safe if graph else 'null' }};
+                const depotNode = {{ depot_node }};
+                const dijkstraSteps = {{ dijkstra_steps|tojson|safe }};
+                
+                console.log("Visualizer loaded:", { graphData, depotNode, dijkstraSteps });
+                if (!graphData || !dijkstraSteps || dijkstraSteps.length === 0) {
+                    console.warn("Visualizer returned early: missing data.");
+                    return;
+                }
+
+                try {
+                    const container = document.getElementById('dijkstra-graph-container');
+                    const nodes = [];
+                    const edges = [];
+                    const numNodes = graphData.length;
+
+                    // Initialize standard nodes
+                    for (let i = 0; i < numNodes; i++) {
+                        const isDepot = (i === depotNode);
+                        nodes.push({
+                            id: i,
+                            label: `Node ${i}${isDepot ? '\n(Depot)' : ''}`,
+                            shape: 'dot',
+                            size: isDepot ? 25 : 20,
+                            font: { color: '#ffffff', face: 'system-ui', size: 14, bold: { color: '#ffffff' } }
+                        });
+                    }
+
+                    let isSymmetric = true;
+                    for (let i = 0; i < numNodes; i++) {
+                        for (let j = 0; j < numNodes; j++) {
+                            if (graphData[i][j] !== graphData[j][i]) {
+                                isSymmetric = false;
+                                break;
+                            }
+                        }
+                        if (!isSymmetric) break;
+                    }
+
+                    const addedEdges = new Set();
+                    for (let i = 0; i < numNodes; i++) {
+                        for (let j = 0; j < numNodes; j++) {
+                            const weight = graphData[i][j];
+                            if (weight > 0) {
+                                const edgeId = isSymmetric 
+                                    ? `edge-${Math.min(i,j)}-${Math.max(i,j)}`
+                                    : `edge-${i}-${j}`;
+                                    
+                                if (isSymmetric) {
+                                    if (!addedEdges.has(edgeId)) {
+                                        addedEdges.add(edgeId);
+                                        edges.push({
+                                            id: edgeId,
+                                            from: i,
+                                            to: j,
+                                            label: String(weight),
+                                            font: { align: 'horizontal', size: 12, color: '#212529', face: 'system-ui', background: '#ffffff' },
+                                            color: { color: '#dee2e6' },
+                                            width: 1.5
+                                        });
+                                    }
+                                } else {
+                                    edges.push({
+                                        id: edgeId,
+                                        from: i,
+                                        to: j,
+                                        label: String(weight),
+                                        arrows: 'to',
+                                        font: { align: 'horizontal', size: 12, color: '#212529', face: 'system-ui', background: '#ffffff' },
+                                        color: { color: '#dee2e6' },
+                                        width: 1.5
+                                    });
+                                }
+                            }
+                        }
+                    }
+
+                    const nodesDataSet = new vis.DataSet(nodes);
+                    const edgesDataSet = new vis.DataSet(edges);
+                    const data = { nodes: nodesDataSet, edges: edgesDataSet };
+
+                    const options = {
+                        physics: {
+                            stabilization: true,
+                            barnesHut: {
+                                gravitationalConstant: -2000,
+                                centralGravity: 0.3,
+                                springLength: 95,
+                                springConstant: 0.04,
+                                damping: 0.09,
+                                avoidOverlap: 0.5
+                            }
+                        },
+                        interaction: {
+                            hover: true
+                        }
+                    };
+
+                    const network = new vis.Network(container, data, options);
+
+                    // Step controller state
+                    let currentStep = 0;
+                    const maxStep = dijkstraSteps.length - 1;
+                    let playInterval = null;
+
+                    // DOM Elements
+                    const stepBadge = document.getElementById('step-badge');
+                    const stepMessage = document.getElementById('step-message');
+                    const stepDistances = document.getElementById('step-distances');
+                    const stepSlider = document.getElementById('step-slider');
+                    const btnFirst = document.getElementById('btn-first');
+                    const btnPrev = document.getElementById('btn-prev');
+                    const btnNext = document.getElementById('btn-next');
+                    const btnLast = document.getElementById('btn-last');
+                    const btnPlayPause = document.getElementById('btn-play-pause');
+                    const playIcon = document.getElementById('play-icon');
+                    const speedSlider = document.getElementById('speed-slider');
+
+                    // Setup step slider range
+                    stepSlider.max = maxStep;
+
+                    function goToStep(stepIndex) {
+                        if (stepIndex < 0 || stepIndex > maxStep) return;
+                        currentStep = stepIndex;
+                        stepSlider.value = currentStep;
+                        stepBadge.textContent = `Langkah ${currentStep} / ${maxStep}`;
+                        
+                        const stepData = dijkstraSteps[currentStep];
+                        stepMessage.textContent = stepData.message;
+
+                        // Update distances details panel
+                        stepDistances.innerHTML = '';
+                        for (let i = 0; i < numNodes; i++) {
+                            const distVal = stepData.dist[i];
+                            const distStr = distVal >= 10**9 ? 'INF' : distVal;
+                            const prevVal = stepData.prev[i];
+                            const prevStr = prevVal === -1 ? 'None' : `Node ${prevVal}`;
+                            
+                            const isSelected = (i === stepData.selected_node);
+                            const isVisited = stepData.visited.includes(i);
+                            
+                            let bgStyle = '';
+                            if (isSelected) {
+                                bgStyle = 'background-color: rgba(255, 193, 7, 0.15); font-weight: bold; border-left: 3px solid #ffc107;';
+                            } else if (isVisited) {
+                                bgStyle = 'background-color: rgba(25, 135, 84, 0.08);';
+                            }
+                            
+                            const item = document.createElement('div');
+                            item.style.cssText = `padding: 2px 6px; margin-bottom: 2px; border-radius: 2px; ${bgStyle}`;
+                            item.innerHTML = `<span>Node ${i}:</span> <span class="float-end">dist = <strong>${distStr}</strong>, prev = <strong>${prevStr}</strong></span>`;
+                            stepDistances.appendChild(item);
+                        }
+
+                        // Update table rows highlight
+                        for (let s = 0; s <= maxStep; s++) {
+                            const row = document.getElementById(`dijkstra-step-row-${s}`);
+                            if (row) {
+                                if (s === currentStep) {
+                                    row.classList.add('table-primary');
+                                } else {
+                                    row.classList.remove('table-primary');
+                                }
+                            }
+                        }
+
+                        // Update graph nodes style dynamically
+                        const updatedNodes = [];
+                        for (let i = 0; i < numNodes; i++) {
+                            const isDepot = (i === depotNode);
+                            const isSelected = (i === stepData.selected_node);
+                            const isVisited = stepData.visited.includes(i);
+                            const distVal = stepData.dist[i];
+                            const isReachable = distVal < 10**9;
+
+                            let bgColor = '#e9ecef';
+                            let borderColor = '#adb5bd';
+                            let fontColor = '#6c757d';
+                            let size = 18;
+
+                            if (isSelected) {
+                                bgColor = '#ffc107';
+                                borderColor = '#ff9800';
+                                fontColor = '#212529';
+                                size = 26;
+                            } else if (isVisited) {
+                                bgColor = '#198754';
+                                borderColor = '#146c43';
+                                fontColor = '#ffffff';
+                                size = 22;
+                            } else if (isReachable) {
+                                bgColor = '#0d6efd';
+                                borderColor = '#0a58ca';
+                                fontColor = '#ffffff';
+                                size = 20;
+                            }
+
+                            const labelNode = `Node ${i}${isDepot ? '\n(Depot)' : ''}\n(${distVal >= 10**9 ? 'INF' : 'd: ' + distVal})`;
+
+                            updatedNodes.push({
+                                id: i,
+                                label: labelNode,
+                                color: {
+                                    background: bgColor,
+                                    border: borderColor,
+                                    highlight: { background: bgColor, border: borderColor }
+                                },
+                                font: { color: fontColor, face: 'system-ui', size: 14, bold: { color: fontColor } },
+                                size: size
+                            });
+                        }
+                        nodesDataSet.update(updatedNodes);
+
+                        // Update graph edges style dynamically
+                        const shortestPathEdges = new Set();
+                        const newlyRelaxedEdges = new Set();
+
+                        for (let v = 0; v < numNodes; v++) {
+                            const p = stepData.prev[v];
+                            if (p !== -1) {
+                                const edgeId = isSymmetric 
+                                    ? `edge-${Math.min(p,v)}-${Math.max(p,v)}`
+                                    : `edge-${p}-${v}`;
+                                
+                                if (p === stepData.selected_node && !stepData.visited.includes(v)) {
+                                    newlyRelaxedEdges.add(edgeId);
+                                } else {
+                                    shortestPathEdges.add(edgeId);
+                                }
+                            }
+                        }
+
+                        const updatedEdges = [];
+                        edges.forEach(edge => {
+                            let color = '#dee2e6';
+                            let width = 1.5;
+                            let dashes = false;
+
+                            if (newlyRelaxedEdges.has(edge.id)) {
+                                color = '#fd7e14';
+                                width = 4;
+                            } else if (shortestPathEdges.has(edge.id)) {
+                                color = '#198754';
+                                width = 3.5;
+                            }
+
+                            updatedEdges.push({
+                                id: edge.id,
+                                color: { color: color, highlight: color },
+                                width: width,
+                                dashes: dashes
+                            });
+                        });
+                        edgesDataSet.update(updatedEdges);
+
+                        // Enable/disable navigation buttons
+                        btnFirst.disabled = (currentStep === 0);
+                        btnPrev.disabled = (currentStep === 0);
+                        btnNext.disabled = (currentStep === maxStep);
+                        btnLast.disabled = (currentStep === maxStep);
+                    }
+
+                    // Expose globally for row clicking
+                    window.goToDijkstraStep = function(stepIndex) {
+                        pauseAutoplay();
+                        goToStep(stepIndex);
+                    };
+
+                    function playNext() {
+                        if (currentStep < maxStep) {
+                            goToStep(currentStep + 1);
+                        } else {
+                            pauseAutoplay();
+                        }
+                    }
+
+                    function startAutoplay() {
+                        if (currentStep === maxStep) {
+                            goToStep(0);
+                        }
+                        const speed = parseInt(speedSlider.value);
+                        playInterval = setInterval(playNext, speed);
+                        playIcon.textContent = 'Pause';
+                        btnPlayPause.classList.remove('btn-primary');
+                        btnPlayPause.classList.add('btn-warning');
+                    }
+
+                    function pauseAutoplay() {
+                        if (playInterval) {
+                            clearInterval(playInterval);
+                            playInterval = null;
+                        }
+                        playIcon.textContent = 'Play';
+                        btnPlayPause.classList.remove('btn-warning');
+                        btnPlayPause.classList.add('btn-primary');
+                    }
+
+                    // Event Listeners
+                    btnFirst.addEventListener('click', () => { pauseAutoplay(); goToStep(0); });
+                    btnPrev.addEventListener('click', () => { pauseAutoplay(); goToStep(currentStep - 1); });
+                    btnNext.addEventListener('click', () => { pauseAutoplay(); goToStep(currentStep + 1); });
+                    btnLast.addEventListener('click', () => { pauseAutoplay(); goToStep(maxStep); });
+
+                    btnPlayPause.addEventListener('click', () => {
+                        if (playInterval) {
+                            pauseAutoplay();
+                        } else {
+                            startAutoplay();
+                        }
+                    });
+
+                    stepSlider.addEventListener('input', (e) => {
+                        pauseAutoplay();
+                        goToStep(parseInt(e.target.value));
+                    });
+
+                    speedSlider.addEventListener('input', () => {
+                        if (playInterval) {
+                            pauseAutoplay();
+                            startAutoplay();
+                        }
+                    });
+
+                    // Initialize first step
+                    goToStep(0);
+                } catch (err) {
+                    console.error("Visualizer initialization failed:", err);
+                }
+            }
+
+            if (document.readyState !== 'loading') {
+                initVisualizer();
+            } else {
+                document.addEventListener('DOMContentLoaded', initVisualizer);
+            }
+        })();
+    </script>
 </body>
 
 </html>

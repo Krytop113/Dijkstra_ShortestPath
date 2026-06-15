@@ -119,6 +119,7 @@ def overview():
     return render_template(
         "overview.html",
         depot_node=depot_node,
+        graph=graph,
         depot_paths=results["depot_paths"],
         package_paths=results["package_paths"],
         vehicle_log=results["vehicle_log"],
