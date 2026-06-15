@@ -3,209 +3,440 @@
 
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dijkstra Routing Overview</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            overflow-x: hidden;
+        }
+
+        .page-enter {
+            animation: pageEnter 0.45s ease both;
+        }
+
+        .card {
+            transition: transform 0.18s ease, box-shadow 0.18s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 .5rem 1rem rgba(0, 0, 0, .10) !important;
+        }
+
+        .summary-card {
+            animation: cardEnter 0.45s ease both;
+        }
+
+        .summary-card:nth-child(2) {
+            animation-delay: 0.05s;
+        }
+
+        .summary-card:nth-child(3) {
+            animation-delay: 0.1s;
+        }
+
+        .summary-card:nth-child(4) {
+            animation-delay: 0.15s;
+        }
+
+        .summary-value {
+            font-size: 2rem;
+            line-height: 1;
+            font-weight: 700;
+        }
+
+        .table-responsive {
+            border-radius: .375rem;
+        }
+
+        .table tbody tr {
+            transition: background-color 0.15s ease;
+        }
+
+        .table tbody tr:hover {
+            background-color: rgba(13, 110, 253, .05);
+        }
+
+        .timeline {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        .timeline li {
+            position: relative;
+            padding-left: 2.25rem;
+            padding-bottom: 1rem;
+            animation: cardEnter 0.35s ease both;
+        }
+
+        .timeline li::before {
+            content: attr(data-step);
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 1.5rem;
+            height: 1.5rem;
+            border-radius: 50%;
+            display: grid;
+            place-items: center;
+            background: var(--bs-primary);
+            color: #fff;
+            font-size: .75rem;
+            font-weight: 700;
+        }
+
+        .timeline li:not(:last-child)::after {
+            content: "";
+            position: absolute;
+            left: .72rem;
+            top: 1.65rem;
+            bottom: .15rem;
+            width: 1px;
+            background: var(--bs-border-color);
+        }
+
+        .path-text {
+            color: var(--bs-primary);
+            font-weight: 600;
+            word-break: break-word;
+        }
+
+        @keyframes pageEnter {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes cardEnter {
+            from {
+                opacity: 0;
+                transform: translateY(8px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            *,
+            *::before,
+            *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+    </style>
 </head>
 
-<body>
-    <h1>Dijkstra & VRP Routing Simulation Overview</h1>
-    <p>
-        <a href="{{ url_for('home') }}">Kembali ke Graf</a>
-    </p>
+<body class="bg-light">
+    <main class="container py-4 page-enter">
+        <header class="mb-4 d-flex justify-content-between align-items-center flex-wrap gap-3">
+            <div>
+                <h1 class="h3 text-primary mb-2">Dijkstra Routing Overview</h1>
+                <p class="text-secondary mb-0">Ringkasan hasil simulasi rute dan pengiriman paket</p>
+            </div>
+            <a href="{{ url_for('home') }}" class="btn btn-success shadow-sm px-4">
+                &larr; Kembali ke Graf
+            </a>
+        </header>
 
-    <hr>
+        <section class="row g-3 mb-4">
+            <div class="col-sm-6 col-xl-3 summary-card">
+                <div class="card shadow-sm h-100">
+                    <div class="card-body">
+                        <div class="text-secondary small mb-2">Jumlah Simpul</div>
+                        <div class="summary-value text-primary">{{ num_nodes }}</div>
+                        <div class="small text-secondary mt-2">Depot: Node {{ depot_node }}</div>
+                    </div>
+                </div>
+            </div>
 
-    <h2>Informasi Graf & Kendaraan</h2>
-    <ul>
-        <li>Gudang Utama (Depot): Node {{ depot_node }}</li>
-        <li>Jumlah Simpul: {{ num_nodes }}</li>
-        <li>Kapasitas Maksimal Kendaraan: {{ stats.capacity }}</li>
-        <li>Total Muatan Terangkut: {{ stats.total_load }}</li>
-    </ul>
+            <div class="col-sm-6 col-xl-3 summary-card">
+                <div class="card shadow-sm h-100">
+                    <div class="card-body">
+                        <div class="text-secondary small mb-2">Kapasitas Kendaraan</div>
+                        <div class="summary-value">{{ stats.capacity }}</div>
+                        <div class="small text-secondary mt-2">Total muatan: {{ stats.total_load }}</div>
+                    </div>
+                </div>
+            </div>
 
-    <h2>Ringkasan Hasil Pengiriman</h2>
-    <ul>
-        <li>Paket Berhasil Terkirim: {{ stats.success_count }}</li>
-        <li>Paket Gagal Terkirim: {{ stats.failed_count }}</li>
-    </ul>
+            <div class="col-sm-6 col-xl-3 summary-card">
+                <div class="card shadow-sm h-100">
+                    <div class="card-body">
+                        <div class="text-secondary small mb-2">Paket Berhasil</div>
+                        <div class="summary-value text-success">{{ stats.success_count }}</div>
+                        <div class="small text-secondary mt-2">Berhasil terkirim</div>
+                    </div>
+                </div>
+            </div>
 
-    <hr>
+            <div class="col-sm-6 col-xl-3 summary-card">
+                <div class="card shadow-sm h-100">
+                    <div class="card-body">
+                        <div class="text-secondary small mb-2">Paket Gagal</div>
+                        <div class="summary-value text-danger">{{ stats.failed_count }}</div>
+                        <div class="small text-secondary mt-2">Belum dapat dikirim</div>
+                    </div>
+                </div>
+            </div>
+        </section>
 
-    <h2>Log Perjalanan Kendaraan</h2>
-    {% if vehicle_log %}
-        <ol>
-            {% for log in vehicle_log %}
-                <li>{{ log }}</li>
-            {% endfor %}
-        </ol>
-    {% else %}
-        <p>Tidak ada pergerakan kendaraan.</p>
-    {% endif %}
+        <section class="card shadow-sm mb-4">
+            <div class="card-header bg-white">
+                <h2 class="h5 mb-0">Informasi Graf &amp; Kendaraan</h2>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-sm-6 col-lg-3">
+                        <div class="border rounded bg-light p-3 h-100">
+                            <div class="small text-secondary">Gudang Utama</div>
+                            <div class="fw-semibold">Node {{ depot_node }}</div>
+                        </div>
+                    </div>
+                    <div class="col-sm-6 col-lg-3">
+                        <div class="border rounded bg-light p-3 h-100">
+                            <div class="small text-secondary">Jumlah Simpul</div>
+                            <div class="fw-semibold">{{ num_nodes }}</div>
+                        </div>
+                    </div>
+                    <div class="col-sm-6 col-lg-3">
+                        <div class="border rounded bg-light p-3 h-100">
+                            <div class="small text-secondary">Kapasitas Maksimal</div>
+                            <div class="fw-semibold">{{ stats.capacity }}</div>
+                        </div>
+                    </div>
+                    <div class="col-sm-6 col-lg-3">
+                        <div class="border rounded bg-light p-3 h-100">
+                            <div class="small text-secondary">Total Muatan</div>
+                            <div class="fw-semibold">{{ stats.total_load }}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
 
-    <hr>
-
-    <h2>Daftar Status Pengiriman Paket</h2>
-    {% if package_paths %}
-        <table border="1" cellpadding="5" cellspacing="0">
-            <thead>
-                <tr>
-                    <th>ID Paket</th>
-                    <th>Asal &rarr; Tujuan</th>
-                    <th>Prioritas</th>
-                    <th>Volume</th>
-                    <th>Deadline</th>
-                    <th>Status Pengiriman</th>
-                    <th>Waktu Tiba</th>
-                    <th>Jalur Ditempuh</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for item in package_paths %}
-                    <tr>
-                        <td>#{{ item.package.id }}</td>
-                        <td>Node {{ item.package.src }} &rarr; Node {{ item.package.dst }}</td>
-                        <td>P{{ item.package.priority }}</td>
-                        <td>{{ item.package.volume }}</td>
-                        <td>H{{ item.package.deadline }}</td>
-                        <td>
-                            {% if item.status == 'Success' %}
-                                <strong>Berhasil Terkirim</strong>
-                            {% elif item.status == 'Failed_Capacity' %}
-                                <em>Gagal Terkirim (Kapasitas Penuh)</em>
-                            {% elif item.status == 'Failed_Deadline' %}
-                                <em>Gagal Terkirim (Melebihi Deadline / Terlambat)</em>
-                            {% elif item.status == 'Failed_Unreachable' %}
-                                <em>Gagal Terkirim (Tujuan Tidak Terhubung)</em>
-                            {% else %}
-                                {{ item.status }}
-                            {% endif %}
-                        </td>
-                        <td>
-                            {% if item.arrival_time is not none %}
-                                {{ item.arrival_time }}
-                            {% else %}
-                                -
-                            {% endif %}
-                        </td>
-                        <td>
-                            {% if item.path %}
-                                {{ item.path|join(' -> ') }}
-                            {% else %}
-                                -
-                            {% endif %}
-                        </td>
-                    </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    {% else %}
-        <p>Belum ada paket.</p>
-    {% endif %}
-
-    <hr>
-
-    <h2>Rute Terpendek Statis dari Gudang (Depot {{ depot_node }}) ke Semua Simpul</h2>
-    <table border="1" cellpadding="5" cellspacing="0">
-        <thead>
-            <tr>
-                <th>Ke Simpul</th>
-                <th>Jalur Terpendek</th>
-                <th>Jarak Terpendek</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for item in depot_paths %}
-                <tr>
-                    <td>Node {{ item.node }}</td>
-                    <td>
-                        {% if item.reachable %}
-                            {{ item.path|join(' -> ') }}
-                        {% else %}
-                            Tidak terhubung
-                        {% endif %}
-                    </td>
-                    <td>
-                        {% if item.reachable %}
-                            {{ item.distance }}
-                        {% else %}
-                            Infinity
-                        {% endif %}
-                    </td>
-                </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-
-    <hr>
-
-    <h2>Status Konektivitas Graf dari Depot</h2>
-    <ul>
-        <li>Status: 
-            {% if connectivity.is_connected %}
-                <strong>Terhubung Sepenuhnya (Semua simpul dapat dijangkau dari Depot)</strong>
-            {% else %}
-                <strong style="color: red;">Tidak Terhubung Sepenuhnya</strong>
-            {% endif %}
-        </li>
-        {% if not connectivity.is_connected %}
-            <li>Simpul yang Tidak Dapat Dijangkau: 
-                {% for node in connectivity.unreachable_nodes %}
-                    <span style="color: red; font-weight: bold;">Node {{ node }}</span>{% if not loop.last %}, {% endif %}
-                {% endfor %}
-            </li>
-        {% endif %}
-    </ul>
-
-    <hr>
-
-    <h2>Pelacakan Iterasi Dijkstra Langkah-demi-Langkah (Sumber: Depot {{ depot_node }})</h2>
-    <table border="1" cellpadding="5" cellspacing="0">
-        <thead>
-            <tr>
-                <th>Langkah</th>
-                <th>Simpul Terpilih</th>
-                <th>Simpul Terkunjungi (Visited)</th>
-                <th>Larik Jarak (dist)</th>
-                <th>Larik Pendahulu (prev)</th>
-                <th>Penjelasan</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for step in dijkstra_steps %}
-                <tr>
-                    <td align="center">{{ step.step }}</td>
-                    <td align="center">
-                        {% if step.selected_node is not none %}
-                            <strong>Node {{ step.selected_node }}</strong>
-                        {% else %}
-                            -
-                        {% endif %}
-                    </td>
-                    <td>
-                        {% if step.visited %}
-                            {{ step.visited|join(', ') }}
-                        {% else %}
-                            Kosong
-                        {% endif %}
-                    </td>
-                    <td>
-                        [
-                        {% for d in step.dist %}
-                            {% if d >= 10**9 %}INF{% else %}{{ d }}{% endif %}{% if not loop.last %}, {% endif %}
+        <section class="card shadow-sm mb-4">
+            <div class="card-header bg-white">
+                <h2 class="h5 mb-0">Log Perjalanan Kendaraan</h2>
+            </div>
+            <div class="card-body">
+                {% if vehicle_log %}
+                    <ol class="timeline">
+                        {% for log in vehicle_log %}
+                            <li data-step="{{ loop.index }}" style="animation-delay: {{ loop.index0 * 45 }}ms;">
+                                {{ log }}
+                            </li>
                         {% endfor %}
-                        ]
-                    </td>
-                    <td>
-                        [
-                        {% for p in step.prev %}
-                            {{ p }}{% if not loop.last %}, {% endif %}
+                    </ol>
+                {% else %}
+                    <div class="border rounded bg-light text-secondary text-center p-4">Tidak ada pergerakan kendaraan.</div>
+                {% endif %}
+            </div>
+        </section>
+
+        <section class="card shadow-sm mb-4">
+            <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                <h2 class="h5 mb-0">Daftar Status Pengiriman Paket</h2>
+                <span class="badge text-bg-secondary">{{ package_paths|length }} paket</span>
+            </div>
+            <div class="card-body">
+                {% if package_paths %}
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-hover table-sm align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>ID Paket</th>
+                                    <th>Asal &rarr; Tujuan</th>
+                                    <th>Prioritas</th>
+                                    <th>Volume</th>
+                                    <th>Deadline</th>
+                                    <th>Status Pengiriman</th>
+                                    <th>Waktu Tiba</th>
+                                    <th>Jalur Ditempuh</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in package_paths %}
+                                    <tr>
+                                        <td class="fw-semibold">#{{ item.package.id }}</td>
+                                        <td>Node {{ item.package.src }} &rarr; Node {{ item.package.dst }}</td>
+                                        <td>
+                                            <span class="badge rounded-pill text-bg-{{ 'danger' if item.package.priority == 1 else 'warning' if item.package.priority == 2 else 'success' }}">
+                                                P{{ item.package.priority }}
+                                            </span>
+                                        </td>
+                                        <td>{{ item.package.volume }}</td>
+                                        <td>H{{ item.package.deadline }}</td>
+                                        <td>
+                                            {% if item.status == 'Success' %}
+                                                <span class="badge text-bg-success">Berhasil Terkirim</span>
+                                            {% elif item.status == 'Failed_Capacity' %}
+                                                <span class="badge text-bg-danger">Kapasitas Penuh</span>
+                                            {% elif item.status == 'Failed_Deadline' %}
+                                                <span class="badge text-bg-danger">Melebihi Deadline</span>
+                                            {% elif item.status == 'Failed_Unreachable' %}
+                                                <span class="badge text-bg-danger">Tujuan Tidak Terhubung</span>
+                                            {% else %}
+                                                <span class="badge text-bg-secondary">{{ item.status }}</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if item.arrival_time is not none %}
+                                                {{ item.arrival_time }}
+                                            {% else %}
+                                                -
+                                            {% endif %}
+                                        </td>
+                                        <td class="path-text">
+                                            {% if item.path %}
+                                                {{ item.path|join(' -> ') }}
+                                            {% else %}
+                                                -
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="border rounded bg-light text-secondary text-center p-4">Belum ada paket.</div>
+                {% endif %}
+            </div>
+        </section>
+
+        <section class="card shadow-sm mb-4">
+            <div class="card-header bg-white">
+                <h2 class="h5 mb-0">Rute Terpendek Statis dari Gudang ke Semua Simpul</h2>
+            </div>
+            <div class="card-body">
+                <h3 class="h6 mb-3">Depot Node {{ depot_node }} sebagai sumber pencarian</h3>
+                <div class="table-responsive">
+                    <table class="table table-bordered table-hover table-sm align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Ke Simpul</th>
+                                <th>Jalur Terpendek</th>
+                                <th>Jarak Terpendek</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in depot_paths %}
+                                <tr>
+                                    <td class="fw-semibold">Node {{ item.node }}</td>
+                                    <td class="path-text">
+                                        {% if item.reachable %}
+                                            {{ item.path|join(' -> ') }}
+                                        {% else %}
+                                            Tidak terhubung
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if item.reachable %}
+                                            {{ item.distance }}
+                                        {% else %}
+                                            <span class="text-danger fw-semibold">Infinity</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <section class="card shadow-sm mb-4">
+            <div class="card-header bg-white">
+                <h2 class="h5 mb-0">Status Konektivitas Graf dari Depot</h2>
+            </div>
+            <div class="card-body">
+                {% if connectivity.is_connected %}
+                    <div class="alert alert-success mb-0">
+                        <strong>Terhubung Sepenuhnya.</strong> Semua simpul dapat dijangkau dari Depot.
+                    </div>
+                {% else %}
+                    <div class="alert alert-danger mb-0">
+                        <strong>Tidak Terhubung Sepenuhnya.</strong>
+                        Simpul yang tidak dapat dijangkau:
+                        {% for node in connectivity.unreachable_nodes %}
+                            <span class="badge text-bg-danger">Node {{ node }}</span>{% if not loop.last %} {% endif %}
                         {% endfor %}
-                        ]
-                    </td>
-                    <td>{{ step.message }}</td>
-                </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+                    </div>
+                {% endif %}
+            </div>
+        </section>
+
+        <section class="card shadow-sm">
+            <div class="card-header bg-white">
+                <h2 class="h5 mb-0">Pelacakan Iterasi Dijkstra Langkah-demi-Langkah</h2>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-bordered table-hover table-sm align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Langkah</th>
+                                <th>Simpul Terpilih</th>
+                                <th>Simpul Terkunjungi</th>
+                                <th>Larik Jarak (dist)</th>
+                                <th>Larik Pendahulu (prev)</th>
+                                <th>Penjelasan</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for step in dijkstra_steps %}
+                                <tr>
+                                    <td class="text-center fw-semibold">{{ step.step }}</td>
+                                    <td class="text-center">
+                                        {% if step.selected_node is not none %}
+                                            <span class="badge text-bg-primary">Node {{ step.selected_node }}</span>
+                                        {% else %}
+                                            -
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if step.visited %}
+                                            {{ step.visited|join(', ') }}
+                                        {% else %}
+                                            Kosong
+                                        {% endif %}
+                                    </td>
+                                    <td class="font-monospace small">
+                                        [
+                                        {% for d in step.dist %}
+                                            {% if d >= 10**9 %}INF{% else %}{{ d }}{% endif %}{% if not loop.last %}, {% endif %}
+                                        {% endfor %}
+                                        ]
+                                    </td>
+                                    <td class="font-monospace small">
+                                        [
+                                        {% for p in step.prev %}
+                                            {{ p }}{% if not loop.last %}, {% endif %}
+                                        {% endfor %}
+                                        ]
+                                    </td>
+                                    <td>{{ step.message }}</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 
 </html>
