@@ -5,6 +5,13 @@ def add_package(packages, package_counter, num_nodes, src, dst, priority, volume
     if src == dst:
         return packages, package_counter, "Asal dan tujuan sama.", "err"
 
+    if volume > 100:
+        return packages, package_counter, "Volume paket tidak boleh melebihi 100.", "err"
+
+    current_total = sum(p["volume"] for p in packages)
+    if current_total + volume > 100:
+        return packages, package_counter, f"Gagal menambahkan paket. Total volume ({current_total + volume}) melebihi batas maksimal 100.", "err"
+
     package = {
         "id": package_counter,
         "src": src,
@@ -41,8 +48,7 @@ def load_sample_packages(num_nodes):
         {"priority": 1, "volume": 30, "deadline": 180},
         {"priority": 2, "volume": 25, "deadline": 300},
         {"priority": 2, "volume": 20, "deadline": 15},
-        {"priority": 3, "volume": 15, "deadline": 400},
-        {"priority": 3, "volume": 40, "deadline": 500},
+        {"priority": 3, "volume": 5, "deadline": 400},
     ]
 
     packages = []

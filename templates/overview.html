@@ -386,7 +386,7 @@
                 <div class="row g-4">
                     <!-- Left: Graph Visualization Container -->
                     <div class="col-lg-8">
-                        <div id="dijkstra-graph-container" style="height: 480px; border: 1px solid #dee2e6; border-radius: .375rem; background-color: #f8f9fa;"></div>
+                        <div id="dijkstra-graph-container" style="height: 480px; border: 1px solid #dee2e6; border-radius: .375rem; background-color: #f8f9fa; opacity: 0; transition: opacity 0.4s ease;"></div>
                     </div>
                     
                     <!-- Right: Step-by-Step Controls and Status Details -->
@@ -609,10 +609,16 @@
 
                     const network = new vis.Network(container, data, options);
 
-                    // Disable physics after initial stabilization to prevent shaking during updates
+                    // Disable physics and show graph after initial stabilization to prevent wiggling/shaking
                     network.once('stabilized', function() {
+                        container.style.opacity = '1';
                         network.setOptions({ physics: { enabled: false } });
                     });
+
+                    // Fail-safe to ensure visibility
+                    setTimeout(() => {
+                        container.style.opacity = '1';
+                    }, 1500);
 
                     // Step controller state
                     let currentStep = 0;
