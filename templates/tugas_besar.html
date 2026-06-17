@@ -88,7 +88,7 @@
                     <span class="badge text-bg-secondary">{{ packages|length }} paket</span>
                     {% set total_volume = packages|sum(attribute='volume') %}
                     <span class="badge text-bg-{{ 'danger' if total_volume >= 100 else 'warning' if total_volume >= 80 else 'success' }}">
-                        Total Volume: {{ total_volume }}/100
+                        Total Volume: {{ total_volume }}
                     </span>
                 </div>
             </div>
