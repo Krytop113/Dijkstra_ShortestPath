@@ -1,8 +1,6 @@
 from controller.dijkstra import dijkstra, reconstruct_path, check_graph_connectivity
 
-VEHICLE_CAPACITY = 100
-
-def get_dijkstra_overview(graph, packages, depot_node):
+def get_dijkstra_overview(graph, packages, depot_node, vehicle_capacity):
     if not graph:
         return {
             "depot_paths": [],
@@ -33,11 +31,11 @@ def get_dijkstra_overview(graph, packages, depot_node):
     package_states = {}
     for pkg in packages:
         pkg_id = pkg["id"]
-        if pkg["volume"] > VEHICLE_CAPACITY:
+        if pkg["volume"] > vehicle_capacity:
             package_states[pkg_id] = {
                 "package": pkg,
                 "status": "Failed_Capacity",
-                "details": f"Gagal Terkirim (Volume paket {pkg['volume']} melebihi kapasitas kendaraan {VEHICLE_CAPACITY})",
+                "details": f"Gagal Terkirim (Volume paket {pkg['volume']} melebihi kapasitas kendaraan {vehicle_capacity})",
                 "arrival_time": None,
                 "path": None,
             }
@@ -74,7 +72,7 @@ def get_dijkstra_overview(graph, packages, depot_node):
     
     trip_number = 1
     vehicle_log = [
-        f"Trip #{trip_number} dimulai: Kendaraan berangkat dari Depot (Node {depot_node}) pada waktu 0. Muatan: 0/{VEHICLE_CAPACITY}"
+        f"Trip #{trip_number} dimulai: Kendaraan berangkat dari Depot (Node {depot_node}) pada waktu 0. Muatan: 0/{vehicle_capacity}"
     ]
 
     while True:
@@ -83,7 +81,7 @@ def get_dijkstra_overview(graph, packages, depot_node):
         for pkg_id, state in package_states.items():
             pkg = state["package"]
             if state["status"] == "Undelivered":
-                if current_load + pkg["volume"] <= VEHICLE_CAPACITY:
+                if current_load + pkg["volume"] <= vehicle_capacity:
                     candidates.append((pkg["src"], "pickup"))
             elif state["status"] == "PickedUp":
                 candidates.append((pkg["dst"], "delivery"))
@@ -112,7 +110,7 @@ def get_dijkstra_overview(graph, packages, depot_node):
             if action == "pickup":
                 pkgs_here = [
                     s["package"] for s in package_states.values()
-                    if s["status"] == "Undelivered" and s["package"]["src"] == target_node and current_load + s["package"]["volume"] <= VEHICLE_CAPACITY
+                    if s["status"] == "Undelivered" and s["package"]["src"] == target_node and current_load + s["package"]["volume"] <= vehicle_capacity
                 ]
                 for p in pkgs_here:
                     score += (4 - p["priority"]) * 30
@@ -198,13 +196,13 @@ def get_dijkstra_overview(graph, packages, depot_node):
                     state["status"] = "Success"
                     state["details"] = f"Berhasil Terkirim (Tiba: {current_time}, Deadline: H{pkg['deadline']})"
                     vehicle_log.append(
-                        f" - Paket #{pkg_id} berhasil terkirim ke Node {current_node} tepat waktu (Tiba: {current_time}, Deadline: H{pkg['deadline']}). Muatan kendaraan: {current_load}/{VEHICLE_CAPACITY}"
+                        f" - Paket #{pkg_id} berhasil terkirim ke Node {current_node} tepat waktu (Tiba: {current_time}, Deadline: H{pkg['deadline']}). Muatan kendaraan: {current_load}/{vehicle_capacity}"
                     )
                 else:
                     state["status"] = "Failed_Deadline"
                     state["details"] = f"Gagal Terkirim (Terlambat: Waktu tiba {current_time}, Deadline: H{pkg['deadline']})"
                     vehicle_log.append(
-                        f" - Paket #{pkg_id} GAGAL terkirim ke Node {current_node} karena terlambat (Tiba: {current_time}, Deadline: H{pkg['deadline']}). Muatan kendaraan: {current_load}/{VEHICLE_CAPACITY}"
+                        f" - Paket #{pkg_id} GAGAL terkirim ke Node {current_node} karena terlambat (Tiba: {current_time}, Deadline: H{pkg['deadline']}). Muatan kendaraan: {current_load}/{vehicle_capacity}"
                     )
 
         elif action == "pickup":
@@ -214,13 +212,13 @@ def get_dijkstra_overview(graph, packages, depot_node):
             )
             for state in pkgs_to_check:
                 pkg = state["package"]
-                if current_load + pkg["volume"] <= VEHICLE_CAPACITY:
+                if current_load + pkg["volume"] <= vehicle_capacity:
                     current_load += pkg["volume"]
                     state["status"] = "PickedUp"
                     state["path"] = [current_node]
                     state["details"] = f"Dijemput di Node {current_node} pada waktu {current_time}."
                     vehicle_log.append(
-                        f" - Paket #{pkg['id']} dijemput di Node {current_node}. Muatan kendaraan: {current_load}/{VEHICLE_CAPACITY}"
+                        f" - Paket #{pkg['id']} dijemput di Node {current_node}. Muatan kendaraan: {current_load}/{vehicle_capacity}"
                     )
 
     for pkg_id, state in package_states.items():
@@ -235,7 +233,7 @@ def get_dijkstra_overview(graph, packages, depot_node):
         "success_count": success_count,
         "failed_count": failed_count,
         "total_load": sum(p["volume"] for p in packages if package_states[p["id"]]["status"] == "Success"),
-        "capacity": VEHICLE_CAPACITY,
+        "capacity": vehicle_capacity,
     }
 
     return {

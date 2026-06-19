@@ -29,6 +29,7 @@
             <div class="card-body">
                 <form class="row g-3 align-items-end" method="post" action="{{ url_for('home') }}">
                     <input type="hidden" name="action" value="generate_graph">
+                    <input type="hidden" name="vehicleCapacity" value="{{ vehicle_capacity }}">
 
                     <div class="col-md-5">
                         <label class="form-label" for="numNodes">Jumlah Simpul (Nodes)</label>
@@ -51,6 +52,7 @@
                     <input type="hidden" name="action" value="import_graph">
                     <input type="hidden" name="numNodes" value="{{ num_nodes }}">
                     <input type="hidden" name="depotNode" value="{{ depot_node }}">
+                    <input type="hidden" name="vehicleCapacity" value="{{ vehicle_capacity }}">
 
                     <div class="row g-3 align-items-end">
                         <div class="col-md-10">
@@ -87,17 +89,35 @@
                 <div class="d-flex gap-2">
                     <span class="badge text-bg-secondary">{{ packages|length }} paket</span>
                     {% set total_volume = packages|sum(attribute='volume') %}
-                    <span class="badge text-bg-{{ 'danger' if total_volume >= 100 else 'warning' if total_volume >= 80 else 'success' }}">
-                        Total Volume: {{ total_volume }}
+                    <span class="badge text-bg-{{ 'danger' if total_volume >= vehicle_capacity else 'warning' if total_volume >= (vehicle_capacity * 0.8) else 'success' }}">
+                        Total Volume: {{ total_volume }}/{{ vehicle_capacity }}
                     </span>
                 </div>
             </div>
 
             <div class="card-body">
                 <form class="row g-3 align-items-end mb-3" method="post" action="{{ url_for('home') }}">
+                    <input type="hidden" name="action" value="update_capacity">
+                    <input type="hidden" name="numNodes" value="{{ num_nodes }}">
+                    <input type="hidden" name="depotNode" value="{{ depot_node }}">
+
+                    <div class="col-sm-8 col-lg-4">
+                        <label class="form-label" for="vehicleCapacity">Kapasitas Kendaraan</label>
+                        <input class="form-control" type="number" id="vehicleCapacity" name="vehicleCapacity" value="{{ vehicle_capacity }}" min="1">
+                    </div>
+
+                    <div class="col-sm-4 col-lg-2 d-grid">
+                        <button class="btn btn-outline-primary" type="submit">Simpan</button>
+                    </div>
+                </form>
+
+                <hr class="my-4">
+
+                <form class="row g-3 align-items-end mb-3" method="post" action="{{ url_for('home') }}">
                     <input type="hidden" name="action" value="add_package">
                     <input type="hidden" name="numNodes" value="{{ num_nodes }}">
                     <input type="hidden" name="depotNode" value="{{ depot_node }}">
+                    <input type="hidden" name="vehicleCapacity" value="{{ vehicle_capacity }}">
 
                     <div class="col-sm-6 col-lg">
                         <label class="form-label" for="pkgSrc">Asal</label>
@@ -138,6 +158,7 @@
                         <input type="hidden" name="action" value="load_sample_packages">
                         <input type="hidden" name="numNodes" value="{{ num_nodes }}">
                         <input type="hidden" name="depotNode" value="{{ depot_node }}">
+                        <input type="hidden" name="vehicleCapacity" value="{{ vehicle_capacity }}">
                         <button class="btn btn-success" type="submit">Load Sample</button>
                     </form>
 
@@ -145,6 +166,7 @@
                         <input type="hidden" name="action" value="clear_packages">
                         <input type="hidden" name="numNodes" value="{{ num_nodes }}">
                         <input type="hidden" name="depotNode" value="{{ depot_node }}">
+                        <input type="hidden" name="vehicleCapacity" value="{{ vehicle_capacity }}">
                         <button class="btn btn-outline-danger" type="submit">Clear Paket</button>
                     </form>
                 </div>
@@ -171,6 +193,7 @@
                                     <input type="hidden" name="package_id" value="{{ package.id }}">
                                     <input type="hidden" name="numNodes" value="{{ num_nodes }}">
                                     <input type="hidden" name="depotNode" value="{{ depot_node }}">
+                                    <input type="hidden" name="vehicleCapacity" value="{{ vehicle_capacity }}">
                                     <button class="btn btn-sm btn-outline-danger" type="submit">Hapus</button>
                                 </form>
                             </div>
