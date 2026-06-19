@@ -13,7 +13,7 @@
         <header class="mb-4 d-flex justify-content-between align-items-center flex-wrap gap-3">
             <div>
                 <h1 class="h3 text-primary mb-2">Dijkstra Shortest Path</h1>
-                <p class="text-secondary mb-0">Buat Terlebih dahulu jalur dan paket nya</p>
+                <p class="text-secondary mb-0">Buat graf terlebih dahulu, lalu tambahkan paket untuk simulasi pengiriman.</p>
             </div>
             {% if graph %}
                 <a href="{{ url_for('overview') }}" class="btn btn-success shadow-sm px-4">
@@ -21,6 +21,56 @@
                 </a>
             {% endif %}
         </header>
+
+        {% if message %}
+            <div class="alert alert-{{ 'danger' if message_type == 'err' else 'success' }} shadow-sm" role="alert">
+                {{ message }}
+            </div>
+        {% endif %}
+
+        <section class="row g-3 mb-4">
+            <div class="col-md-6">
+                <div class="border rounded bg-white p-3 h-100">
+                    <div class="d-flex align-items-start gap-3">
+                        <span class="badge rounded-pill text-bg-{{ 'success' if graph else 'primary' }}">1</span>
+                        <div>
+                            <div class="fw-semibold">Siapkan graf</div>
+                            <div class="small text-secondary">
+                                Generate graf baru atau import adjacency matrix dari file CSV.
+                            </div>
+                            <div class="small mt-2">
+                                {% if graph %}
+                                    <span class="text-success fw-semibold">Graf siap dipakai.</span>
+                                {% else %}
+                                    <span class="text-secondary">Graf belum dibuat.</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="border rounded bg-white p-3 h-100">
+                    <div class="d-flex align-items-start gap-3">
+                        <span class="badge rounded-pill text-bg-{{ 'primary' if graph else 'secondary' }}">2</span>
+                        <div>
+                            <div class="fw-semibold">Tambahkan paket</div>
+                            <div class="small text-secondary">
+                                Input paket aktif setelah graf berhasil dibuat atau diimport.
+                            </div>
+                            <div class="small mt-2">
+                                {% if graph %}
+                                    <span class="text-success fw-semibold">Form paket sudah aktif.</span>
+                                {% else %}
+                                    <span class="text-secondary">Menunggu graf tersedia.</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
 
         <section class="card shadow-sm mb-4">
             <div class="card-header bg-white">
@@ -113,44 +163,52 @@
 
                 <hr class="my-4">
 
-                <form class="row g-3 align-items-end mb-3" method="post" action="{{ url_for('home') }}">
+                {% if not graph %}
+                    <div class="alert alert-warning mb-3" role="alert">
+                        Tambahkan paket setelah graf berhasil dibuat lewat tombol Generate atau Import CSV.
+                    </div>
+                {% endif %}
+
+                <form method="post" action="{{ url_for('home') }}">
                     <input type="hidden" name="action" value="add_package">
                     <input type="hidden" name="numNodes" value="{{ num_nodes }}">
                     <input type="hidden" name="depotNode" value="{{ depot_node }}">
                     <input type="hidden" name="vehicleCapacity" value="{{ vehicle_capacity }}">
 
-                    <div class="col-sm-6 col-lg">
-                        <label class="form-label" for="pkgSrc">Asal</label>
-                        <input class="form-control" type="number" id="pkgSrc" name="pkgSrc" value="{{ depot_node }}" min="0">
-                    </div>
+                    <fieldset class="row g-3 align-items-end mb-3" {% if not graph %}disabled{% endif %}>
+                        <div class="col-sm-6 col-lg">
+                            <label class="form-label" for="pkgSrc">Asal</label>
+                            <input class="form-control" type="number" id="pkgSrc" name="pkgSrc" value="{{ depot_node }}" min="0">
+                        </div>
 
-                    <div class="col-sm-6 col-lg">
-                        <label class="form-label" for="pkgDst">Tujuan</label>
-                        <input class="form-control" type="number" id="pkgDst" name="pkgDst" value="1" min="0">
-                    </div>
+                        <div class="col-sm-6 col-lg">
+                            <label class="form-label" for="pkgDst">Tujuan</label>
+                            <input class="form-control" type="number" id="pkgDst" name="pkgDst" value="1" min="0">
+                        </div>
 
-                    <div class="col-sm-6 col-lg">
-                        <label class="form-label" for="pkgPri">Prioritas</label>
-                        <select class="form-select" id="pkgPri" name="pkgPri">
-                            <option value="1">P1</option>
-                            <option value="2">P2</option>
-                            <option value="3">P3</option>
-                        </select>
-                    </div>
+                        <div class="col-sm-6 col-lg">
+                            <label class="form-label" for="pkgPri">Prioritas</label>
+                            <select class="form-select" id="pkgPri" name="pkgPri">
+                                <option value="1">P1</option>
+                                <option value="2">P2</option>
+                                <option value="3">P3</option>
+                            </select>
+                        </div>
 
-                    <div class="col-sm-6 col-lg">
-                        <label class="form-label" for="pkgVol">Volume</label>
-                        <input class="form-control" type="number" id="pkgVol" name="pkgVol" value="10" min="1">
-                    </div>
+                        <div class="col-sm-6 col-lg">
+                            <label class="form-label" for="pkgVol">Volume</label>
+                            <input class="form-control" type="number" id="pkgVol" name="pkgVol" value="10" min="1">
+                        </div>
 
-                    <div class="col-sm-6 col-lg">
-                        <label class="form-label" for="pkgDead">Deadline</label>
-                        <input class="form-control" type="number" id="pkgDead" name="pkgDead" value="1" min="1">
-                    </div>
+                        <div class="col-sm-6 col-lg">
+                            <label class="form-label" for="pkgDead">Deadline</label>
+                            <input class="form-control" type="number" id="pkgDead" name="pkgDead" value="1" min="1">
+                        </div>
 
-                    <div class="col-sm-6 col-lg d-grid">
-                        <button class="btn btn-primary" type="submit">Tambah Paket</button>
-                    </div>
+                        <div class="col-sm-6 col-lg d-grid">
+                            <button class="btn btn-primary" type="submit">Tambah Paket</button>
+                        </div>
+                    </fieldset>
                 </form>
 
                 <div class="d-flex flex-wrap gap-2 mb-3">
@@ -159,7 +217,7 @@
                         <input type="hidden" name="numNodes" value="{{ num_nodes }}">
                         <input type="hidden" name="depotNode" value="{{ depot_node }}">
                         <input type="hidden" name="vehicleCapacity" value="{{ vehicle_capacity }}">
-                        <button class="btn btn-success" type="submit">Load Sample</button>
+                        <button class="btn btn-success" type="submit" {% if not graph %}disabled{% endif %}>Load Sample</button>
                     </form>
 
                     <form method="post" action="{{ url_for('home') }}">

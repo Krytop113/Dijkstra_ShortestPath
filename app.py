@@ -1,10 +1,6 @@
 from flask import Flask, render_template, request, session
 
-from controller.graf import (
-    generate_random_graph,
-    import_graph_from_csv,
-    create_graph_with_validation,
-)
+from controller.graf import import_graph_from_csv, create_graph_with_validation
 from controller.package_manager import (
     add_package,
     clear_packages,
@@ -63,17 +59,21 @@ def home():
                 if removed_any:
                     message = f"{message} Paket dengan node di luar graf ikut dihapus."
         elif action == "add_package":
-            packages, package_counter, message, message_type = add_package(
-                packages=packages,
-                package_counter=package_counter,
-                num_nodes=num_nodes,
-                vehicle_capacity=vehicle_capacity,
-                src=parse_int(request.form.get("pkgSrc"), 0),
-                dst=parse_int(request.form.get("pkgDst"), 0),
-                priority=parse_int(request.form.get("pkgPri"), 1),
-                volume=parse_int(request.form.get("pkgVol"), 1),
-                deadline=parse_int(request.form.get("pkgDead"), 1),
-            )
+            if graph is None:
+                message = "Silakan generate graf atau import CSV terlebih dahulu sebelum menambahkan paket."
+                message_type = "err"
+            else:
+                packages, package_counter, message, message_type = add_package(
+                    packages=packages,
+                    package_counter=package_counter,
+                    num_nodes=num_nodes,
+                    vehicle_capacity=vehicle_capacity,
+                    src=parse_int(request.form.get("pkgSrc"), 0),
+                    dst=parse_int(request.form.get("pkgDst"), 0),
+                    priority=parse_int(request.form.get("pkgPri"), 1),
+                    volume=parse_int(request.form.get("pkgVol"), 1),
+                    deadline=parse_int(request.form.get("pkgDead"), 1),
+                )
         elif action == "update_capacity":
             message = f"Kapasitas kendaraan berhasil diubah menjadi {vehicle_capacity}."
         elif action == "remove_package":
@@ -84,10 +84,12 @@ def home():
             packages, package_counter = clear_packages()
             message = "Semua paket berhasil dihapus."
         elif action == "load_sample_packages":
-            if graph is None or len(graph) != num_nodes:
-                graph = generate_random_graph(num_nodes)
-            packages, package_counter = load_sample_packages(num_nodes)
-            message = "Paket contoh berhasil dimuat."
+            if graph is None:
+                message = "Silakan generate graf atau import CSV terlebih dahulu sebelum memuat paket contoh."
+                message_type = "err"
+            else:
+                packages, package_counter = load_sample_packages(num_nodes)
+                message = "Paket contoh berhasil dimuat."
 
 
         session["num_nodes"] = num_nodes
