@@ -1,12 +1,15 @@
-def add_package(packages, package_counter, num_nodes, src, dst, priority, volume, deadline):
+def add_package(packages, package_counter, num_nodes, vehicle_capacity, src, dst, priority, volume, deadline):
     if src >= num_nodes or dst >= num_nodes or src < 0 or dst < 0:
         return packages, package_counter, "Node tidak valid.", "err"
 
     if src == dst:
         return packages, package_counter, "Asal dan tujuan sama.", "err"
 
-    if volume > 100:
-        return packages, package_counter, "Volume paket tidak boleh melebihi 100.", "err"
+    if volume < 1:
+        return packages, package_counter, "Volume paket minimal 1.", "err"
+
+    if volume > vehicle_capacity:
+        return packages, package_counter, f"Volume paket tidak boleh melebihi kapasitas kendaraan {vehicle_capacity}.", "err"
 
 
     package = {
