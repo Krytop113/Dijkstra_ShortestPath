@@ -532,11 +532,9 @@
     <script>
         (function () {
             function initVisualizer() {
-                const graphData = {{ graph| tojson | safe if graph else 'null'
-            }
-        };
-        const depotNode = {{ depot_node }};
-        const dijkstraSteps = {{ dijkstra_steps| tojson | safe }};
+                const graphData = {{ graph| tojson | safe if graph else 'null' }};
+                const depotNode = {{ depot_node }};
+                const dijkstraSteps = {{ dijkstra_steps| tojson | safe }};
 
         console.log("Visualizer loaded:", { graphData, depotNode, dijkstraSteps });
         if (!graphData || !dijkstraSteps || dijkstraSteps.length === 0) {

@@ -169,57 +169,59 @@ def get_dijkstra_overview(graph, packages, depot_node, vehicle_capacity):
                 f"Kendaraan kembali ke Depot (Node {target_node}) melalui jalur [{path_str}] (Jarak: {best_dist}). Waktu kumulatif: {current_time}."
             )
             current_node = target_node
-            if has_undelivered:
+        else:
+            vehicle_log.append(
+                f"Kendaraan bergerak dari Node {current_node} ke Node {target_node} melalui jalur [{path_str}] (Jarak: {best_dist}). Waktu kumulatif: {current_time}."
+            )
+            current_node = target_node
+
+        # Perform deliveries at the current node (frees up capacity)
+        delivered_here = [
+            pkg_id for pkg_id, s in package_states.items()
+            if s["status"] == "PickedUp" and s["package"]["dst"] == current_node
+        ]
+        for pkg_id in delivered_here:
+            state = package_states[pkg_id]
+            pkg = state["package"]
+            current_load -= pkg["volume"]
+            state["arrival_time"] = current_time
+            
+            if current_time <= pkg["deadline"]:
+                state["status"] = "Success"
+                state["details"] = f"Berhasil Terkirim (Tiba: {current_time}, Deadline: H{pkg['deadline']})"
+                vehicle_log.append(
+                    f" - Paket #{pkg_id} berhasil terkirim ke Node {current_node} tepat waktu (Tiba: {current_time}, Deadline: H{pkg['deadline']}). Muatan kendaraan: {current_load}/{vehicle_capacity}"
+                )
+            else:
+                state["status"] = "Failed_Deadline"
+                state["details"] = f"Gagal Terkirim (Terlambat: Waktu tiba {current_time}, Deadline: H{pkg['deadline']})"
+                vehicle_log.append(
+                    f" - Paket #{pkg_id} GAGAL terkirim ke Node {current_node} karena terlambat (Tiba: {current_time}, Deadline: H{pkg['deadline']}). Muatan kendaraan: {current_load}/{vehicle_capacity}"
+                )
+
+        # Perform pickups at the current node (utilizes available capacity)
+        pkgs_to_check = sorted(
+            [s for s in package_states.values() if s["status"] == "Undelivered" and s["package"]["src"] == current_node],
+            key=lambda x: (x["package"]["priority"], x["package"]["deadline"])
+        )
+        for state in pkgs_to_check:
+            pkg = state["package"]
+            if current_load + pkg["volume"] <= vehicle_capacity:
+                current_load += pkg["volume"]
+                state["status"] = "PickedUp"
+                state["path"] = [current_node]
+                state["details"] = f"Dijemput di Node {current_node} pada waktu {current_time}."
+                vehicle_log.append(
+                    f" - Paket #{pkg['id']} dijemput di Node {current_node}. Muatan kendaraan: {current_load}/{vehicle_capacity}"
+                )
+
+        if action == "return_to_depot":
+            has_undelivered_now = any(s["status"] == "Undelivered" for s in package_states.values())
+            if has_undelivered_now:
                 trip_number += 1
                 vehicle_log.append(
                     f"Trip #{trip_number} dimulai: Kendaraan memuat ulang/kembali bersiap di Depot pada waktu {current_time}."
                 )
-            continue
-
-        vehicle_log.append(
-            f"Kendaraan bergerak dari Node {current_node} ke Node {target_node} melalui jalur [{path_str}] (Jarak: {best_dist}). Waktu kumulatif: {current_time}."
-        )
-        current_node = target_node
-
-        if action == "delivery":
-            delivered_here = [
-                pkg_id for pkg_id, s in package_states.items()
-                if s["status"] == "PickedUp" and s["package"]["dst"] == current_node
-            ]
-            for pkg_id in delivered_here:
-                state = package_states[pkg_id]
-                pkg = state["package"]
-                current_load -= pkg["volume"]
-                state["arrival_time"] = current_time
-                
-                if current_time <= pkg["deadline"]:
-                    state["status"] = "Success"
-                    state["details"] = f"Berhasil Terkirim (Tiba: {current_time}, Deadline: H{pkg['deadline']})"
-                    vehicle_log.append(
-                        f" - Paket #{pkg_id} berhasil terkirim ke Node {current_node} tepat waktu (Tiba: {current_time}, Deadline: H{pkg['deadline']}). Muatan kendaraan: {current_load}/{vehicle_capacity}"
-                    )
-                else:
-                    state["status"] = "Failed_Deadline"
-                    state["details"] = f"Gagal Terkirim (Terlambat: Waktu tiba {current_time}, Deadline: H{pkg['deadline']})"
-                    vehicle_log.append(
-                        f" - Paket #{pkg_id} GAGAL terkirim ke Node {current_node} karena terlambat (Tiba: {current_time}, Deadline: H{pkg['deadline']}). Muatan kendaraan: {current_load}/{vehicle_capacity}"
-                    )
-
-        elif action == "pickup":
-            pkgs_to_check = sorted(
-                [s for s in package_states.values() if s["status"] == "Undelivered" and s["package"]["src"] == current_node],
-                key=lambda x: (x["package"]["priority"], x["package"]["deadline"])
-            )
-            for state in pkgs_to_check:
-                pkg = state["package"]
-                if current_load + pkg["volume"] <= vehicle_capacity:
-                    current_load += pkg["volume"]
-                    state["status"] = "PickedUp"
-                    state["path"] = [current_node]
-                    state["details"] = f"Dijemput di Node {current_node} pada waktu {current_time}."
-                    vehicle_log.append(
-                        f" - Paket #{pkg['id']} dijemput di Node {current_node}. Muatan kendaraan: {current_load}/{vehicle_capacity}"
-                    )
 
     for pkg_id, state in package_states.items():
         if state["status"] == "Undelivered":
