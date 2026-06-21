@@ -108,6 +108,7 @@
                 opacity: 0;
                 transform: translateY(10px);
             }
+
             to {
                 opacity: 1;
                 transform: translateY(0);
@@ -119,6 +120,7 @@
                 opacity: 0;
                 transform: translateY(8px);
             }
+
             to {
                 opacity: 1;
                 transform: translateY(0);
@@ -126,6 +128,7 @@
         }
 
         @media (prefers-reduced-motion: reduce) {
+
             *,
             *::before,
             *::after {
@@ -183,9 +186,9 @@
             <div class="col-sm-6 col-xl-3 summary-card">
                 <div class="card shadow-sm h-100">
                     <div class="card-body">
-                        <div class="text-secondary small mb-2">Paket Gagal</div>
+                        <div class="text-secondary small mb-2">Paket Tidak On-Time</div>
                         <div class="summary-value text-danger">{{ stats.failed_count }}</div>
-                        <div class="small text-secondary mt-2">Belum dapat dikirim</div>
+                        <div class="small text-secondary mt-2">Terkirim namun melebihi deadline</div>
                     </div>
                 </div>
             </div>
@@ -231,15 +234,16 @@
             </div>
             <div class="card-body">
                 {% if vehicle_log %}
-                    <ol class="timeline">
-                        {% for log in vehicle_log %}
-                            <li data-step="{{ loop.index }}" style="animation-delay: {{ loop.index0 * 45 }}ms;">
-                                {{ log }}
-                            </li>
-                        {% endfor %}
-                    </ol>
+                <ol class="timeline">
+                    {% for log in vehicle_log %}
+                    <li data-step="{{ loop.index }}" style="animation-delay: {{ loop.index0 * 45 }}ms;">
+                        {{ log }}
+                    </li>
+                    {% endfor %}
+                </ol>
                 {% else %}
-                    <div class="border rounded bg-light text-secondary text-center p-4">Tidak ada pergerakan kendaraan.</div>
+                <div class="border rounded bg-light text-secondary text-center p-4">Tidak ada pergerakan kendaraan.
+                </div>
                 {% endif %}
             </div>
         </section>
@@ -251,66 +255,67 @@
             </div>
             <div class="card-body">
                 {% if package_paths %}
-                    <div class="table-responsive">
-                        <table class="table table-bordered table-hover table-sm align-middle mb-0">
-                            <thead class="table-light">
-                                <tr>
-                                    <th>ID Paket</th>
-                                    <th>Asal &rarr; Tujuan</th>
-                                    <th>Prioritas</th>
-                                    <th>Volume</th>
-                                    <th>Deadline</th>
-                                    <th>Status Pengiriman</th>
-                                    <th>Waktu Tiba</th>
-                                    <th>Jalur Ditempuh</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for item in package_paths %}
-                                    <tr>
-                                        <td class="fw-semibold">#{{ item.package.id }}</td>
-                                        <td>Node {{ item.package.src }} &rarr; Node {{ item.package.dst }}</td>
-                                        <td>
-                                            <span class="badge rounded-pill text-bg-{{ 'danger' if item.package.priority == 1 else 'warning' if item.package.priority == 2 else 'success' }}">
-                                                P{{ item.package.priority }}
-                                            </span>
-                                        </td>
-                                        <td>{{ item.package.volume }}</td>
-                                        <td>H{{ item.package.deadline }}</td>
-                                        <td>
-                                            {% if item.status == 'Success' %}
-                                                <span class="badge text-bg-success">Berhasil Terkirim</span>
-                                            {% elif item.status == 'Failed_Capacity' %}
-                                                <span class="badge text-bg-danger">Kapasitas Penuh</span>
-                                            {% elif item.status == 'Failed_Deadline' %}
-                                                <span class="badge text-bg-danger">Melebihi Deadline</span>
-                                            {% elif item.status == 'Failed_Unreachable' %}
-                                                <span class="badge text-bg-danger">Tujuan Tidak Terhubung</span>
-                                            {% else %}
-                                                <span class="badge text-bg-secondary">{{ item.status }}</span>
-                                            {% endif %}
-                                        </td>
-                                        <td>
-                                            {% if item.arrival_time is not none %}
-                                                {{ item.arrival_time }}
-                                            {% else %}
-                                                -
-                                            {% endif %}
-                                        </td>
-                                        <td class="path-text">
-                                            {% if item.path %}
-                                                {{ item.path|join(' -> ') }}
-                                            {% else %}
-                                                -
-                                            {% endif %}
-                                        </td>
-                                    </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
+                <div class="table-responsive">
+                    <table class="table table-bordered table-hover table-sm align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>ID Paket</th>
+                                <th>Asal &rarr; Tujuan</th>
+                                <th>Prioritas</th>
+                                <th>Volume</th>
+                                <th>Deadline</th>
+                                <th>Status Pengiriman</th>
+                                <th>Waktu Tiba</th>
+                                <th>Jalur Ditempuh</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in package_paths %}
+                            <tr>
+                                <td class="fw-semibold">#{{ item.package.id }}</td>
+                                <td>Node {{ item.package.src }} &rarr; Node {{ item.package.dst }}</td>
+                                <td>
+                                    <span
+                                        class="badge rounded-pill text-bg-{{ 'danger' if item.package.priority == 1 else 'warning' if item.package.priority == 2 else 'success' }}">
+                                        P{{ item.package.priority }}
+                                    </span>
+                                </td>
+                                <td>{{ item.package.volume }}</td>
+                                <td>H{{ item.package.deadline }}</td>
+                                <td>
+                                    {% if item.status == 'Success' %}
+                                    <span class="badge text-bg-success">Berhasil Terkirim</span>
+                                    {% elif item.status == 'Failed_Capacity' %}
+                                    <span class="badge text-bg-danger">Kapasitas Penuh</span>
+                                    {% elif item.status == 'Failed_Deadline' %}
+                                    <span class="badge text-bg-danger">Melebihi Deadline</span>
+                                    {% elif item.status == 'Failed_Unreachable' %}
+                                    <span class="badge text-bg-danger">Tujuan Tidak Terhubung</span>
+                                    {% else %}
+                                    <span class="badge text-bg-secondary">{{ item.status }}</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if item.arrival_time is not none %}
+                                    {{ item.arrival_time }}
+                                    {% else %}
+                                    -
+                                    {% endif %}
+                                </td>
+                                <td class="path-text">
+                                    {% if item.path %}
+                                    {{ item.path|join(' -> ') }}
+                                    {% else %}
+                                    -
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
                 {% else %}
-                    <div class="border rounded bg-light text-secondary text-center p-4">Belum ada paket.</div>
+                <div class="border rounded bg-light text-secondary text-center p-4">Belum ada paket.</div>
                 {% endif %}
             </div>
         </section>
@@ -332,23 +337,23 @@
                         </thead>
                         <tbody>
                             {% for item in depot_paths %}
-                                <tr>
-                                    <td class="fw-semibold">Node {{ item.node }}</td>
-                                    <td class="path-text">
-                                        {% if item.reachable %}
-                                            {{ item.path|join(' -> ') }}
-                                        {% else %}
-                                            Tidak terhubung
-                                        {% endif %}
-                                    </td>
-                                    <td>
-                                        {% if item.reachable %}
-                                            {{ item.distance }}
-                                        {% else %}
-                                            <span class="text-danger fw-semibold">Infinity</span>
-                                        {% endif %}
-                                    </td>
-                                </tr>
+                            <tr>
+                                <td class="fw-semibold">Node {{ item.node }}</td>
+                                <td class="path-text">
+                                    {% if item.reachable %}
+                                    {{ item.path|join(' -> ') }}
+                                    {% else %}
+                                    Tidak terhubung
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if item.reachable %}
+                                    {{ item.distance }}
+                                    {% else %}
+                                    <span class="text-danger fw-semibold">Infinity</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
                             {% endfor %}
                         </tbody>
                     </table>
@@ -362,17 +367,17 @@
             </div>
             <div class="card-body">
                 {% if connectivity.is_connected %}
-                    <div class="alert alert-success mb-0">
-                        <strong>Terhubung Sepenuhnya.</strong> Semua simpul dapat dijangkau dari Depot.
-                    </div>
+                <div class="alert alert-success mb-0">
+                    <strong>Terhubung Sepenuhnya.</strong> Semua simpul dapat dijangkau dari Depot.
+                </div>
                 {% else %}
-                    <div class="alert alert-danger mb-0">
-                        <strong>Tidak Terhubung Sepenuhnya.</strong>
-                        Simpul yang tidak dapat dijangkau:
-                        {% for node in connectivity.unreachable_nodes %}
-                            <span class="badge text-bg-danger">Node {{ node }}</span>{% if not loop.last %} {% endif %}
-                        {% endfor %}
-                    </div>
+                <div class="alert alert-danger mb-0">
+                    <strong>Tidak Terhubung Sepenuhnya.</strong>
+                    Simpul yang tidak dapat dijangkau:
+                    {% for node in connectivity.unreachable_nodes %}
+                    <span class="badge text-bg-danger">Node {{ node }}</span>{% if not loop.last %} {% endif %}
+                    {% endfor %}
+                </div>
                 {% endif %}
             </div>
         </section>
@@ -386,56 +391,72 @@
                 <div class="row g-4">
                     <!-- Left: Graph Visualization Container -->
                     <div class="col-lg-8">
-                        <div id="dijkstra-graph-container" style="height: 480px; border: 1px solid #dee2e6; border-radius: .375rem; background-color: #f8f9fa; opacity: 0; transition: opacity 0.4s ease;"></div>
+                        <div id="dijkstra-graph-container"
+                            style="height: 480px; border: 1px solid #dee2e6; border-radius: .375rem; background-color: #f8f9fa; opacity: 0; transition: opacity 0.4s ease;">
+                        </div>
                     </div>
-                    
+
                     <!-- Right: Step-by-Step Controls and Status Details -->
                     <div class="col-lg-4 d-flex flex-column justify-content-between">
                         <div class="border rounded p-3 bg-light mb-3 flex-grow-1">
                             <h3 class="h6 text-secondary border-bottom pb-2 mb-3">Informasi Langkah</h3>
-                            
+
                             <div class="mb-3">
                                 <span class="small text-secondary fw-semibold">Status Simpul:</span>
                                 <div class="d-flex flex-wrap gap-2 mt-1">
-                                    <span class="badge" style="background-color: #ffc107; color: #212529; font-size: 0.75rem;">Terpilih (Active)</span>
-                                    <span class="badge" style="background-color: #198754; color: #ffffff; font-size: 0.75rem;">Terkunjungi</span>
-                                    <span class="badge" style="background-color: #0d6efd; color: #ffffff; font-size: 0.75rem;">Terjangkau</span>
-                                    <span class="badge" style="background-color: #e9ecef; color: #6c757d; border: 1px solid #adb5bd; font-size: 0.75rem;">Belum Dijangkau</span>
+                                    <span class="badge"
+                                        style="background-color: #ffc107; color: #212529; font-size: 0.75rem;">Terpilih
+                                        (Active)</span>
+                                    <span class="badge"
+                                        style="background-color: #198754; color: #ffffff; font-size: 0.75rem;">Terkunjungi</span>
+                                    <span class="badge"
+                                        style="background-color: #0d6efd; color: #ffffff; font-size: 0.75rem;">Terjangkau</span>
+                                    <span class="badge"
+                                        style="background-color: #e9ecef; color: #6c757d; border: 1px solid #adb5bd; font-size: 0.75rem;">Belum
+                                        Dijangkau</span>
                                 </div>
                             </div>
-                            
+
                             <div class="mb-3">
                                 <span class="small text-secondary fw-semibold">Penjelasan Langkah:</span>
-                                <p class="mb-0 mt-1 text-dark fw-medium" id="step-message" style="font-size: 0.9rem; line-height: 1.4; min-height: 60px;"></p>
+                                <p class="mb-0 mt-1 text-dark fw-medium" id="step-message"
+                                    style="font-size: 0.9rem; line-height: 1.4; min-height: 60px;"></p>
                             </div>
-                            
+
                             <div class="mb-3">
                                 <span class="small text-secondary fw-semibold">Detail Jarak (dist):</span>
-                                <div class="font-monospace small mt-1 p-2 bg-white border rounded" id="step-distances" style="max-height: 150px; overflow-y: auto;">
+                                <div class="font-monospace small mt-1 p-2 bg-white border rounded" id="step-distances"
+                                    style="max-height: 150px; overflow-y: auto;">
                                     <!-- Dynamic list of distances -->
                                 </div>
                             </div>
                         </div>
-                        
+
                         <!-- Control panel buttons -->
                         <div class="border rounded p-3 bg-light">
                             <div class="d-flex justify-content-between align-items-center mb-3">
-                                <button class="btn btn-sm btn-outline-secondary" id="btn-first" title="Awal">&laquo;</button>
-                                <button class="btn btn-sm btn-outline-secondary" id="btn-prev" title="Sebelumnya">&lsaquo;</button>
-                                
+                                <button class="btn btn-sm btn-outline-secondary" id="btn-first"
+                                    title="Awal">&laquo;</button>
+                                <button class="btn btn-sm btn-outline-secondary" id="btn-prev"
+                                    title="Sebelumnya">&lsaquo;</button>
+
                                 <button class="btn btn-primary px-3" id="btn-play-pause">
                                     <span id="play-icon">Play</span>
                                 </button>
-                                
-                                <button class="btn btn-sm btn-outline-secondary" id="btn-next" title="Berikutnya">&rsaquo;</button>
-                                <button class="btn btn-sm btn-outline-secondary" id="btn-last" title="Akhir">&raquo;</button>
+
+                                <button class="btn btn-sm btn-outline-secondary" id="btn-next"
+                                    title="Berikutnya">&rsaquo;</button>
+                                <button class="btn btn-sm btn-outline-secondary" id="btn-last"
+                                    title="Akhir">&raquo;</button>
                             </div>
-                            
+
                             <div class="d-flex align-items-center gap-2 mb-2">
-                                <span class="small text-secondary" style="font-size: 0.8rem; white-space: nowrap;">Speed:</span>
-                                <input type="range" class="form-range" id="speed-slider" min="500" max="3000" step="250" value="1500" title="Kecepatan Autoplay">
+                                <span class="small text-secondary"
+                                    style="font-size: 0.8rem; white-space: nowrap;">Speed:</span>
+                                <input type="range" class="form-range" id="speed-slider" min="500" max="3000" step="250"
+                                    value="1500" title="Kecepatan Autoplay">
                             </div>
-                            
+
                             <div>
                                 <input type="range" class="form-range" id="step-slider" min="0" max="0" value="0">
                             </div>
@@ -464,38 +485,40 @@
                         </thead>
                         <tbody>
                             {% for step in dijkstra_steps %}
-                                <tr id="dijkstra-step-row-{{ step.step }}" style="cursor: pointer;" onclick="goToDijkstraStep({{ step.step }})">
-                                    <td class="text-center fw-semibold">{{ step.step }}</td>
-                                    <td class="text-center">
-                                        {% if step.selected_node is not none %}
-                                            <span class="badge text-bg-primary">Node {{ step.selected_node }}</span>
-                                        {% else %}
-                                            -
-                                        {% endif %}
-                                    </td>
-                                    <td>
-                                        {% if step.visited %}
-                                            {{ step.visited|join(', ') }}
-                                        {% else %}
-                                            Kosong
-                                        {% endif %}
-                                    </td>
-                                    <td class="font-monospace small">
-                                        [
-                                        {% for d in step.dist %}
-                                            {% if d >= 10**9 %}INF{% else %}{{ d }}{% endif %}{% if not loop.last %}, {% endif %}
-                                        {% endfor %}
-                                        ]
-                                    </td>
-                                    <td class="font-monospace small">
-                                        [
-                                        {% for p in step.prev %}
-                                            {{ p }}{% if not loop.last %}, {% endif %}
-                                        {% endfor %}
-                                        ]
-                                    </td>
-                                    <td>{{ step.message }}</td>
-                                </tr>
+                            <tr id="dijkstra-step-row-{{ step.step }}" style="cursor: pointer;"
+                                onclick="goToDijkstraStep({{ step.step }})">
+                                <td class="text-center fw-semibold">{{ step.step }}</td>
+                                <td class="text-center">
+                                    {% if step.selected_node is not none %}
+                                    <span class="badge text-bg-primary">Node {{ step.selected_node }}</span>
+                                    {% else %}
+                                    -
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if step.visited %}
+                                    {{ step.visited|join(', ') }}
+                                    {% else %}
+                                    Kosong
+                                    {% endif %}
+                                </td>
+                                <td class="font-monospace small">
+                                    [
+                                    {% for d in step.dist %}
+                                    {% if d >= 10**9 %}INF{% else %}{{ d }}{% endif %}{% if not loop.last %}, {% endif
+                                    %}
+                                    {% endfor %}
+                                    ]
+                                </td>
+                                <td class="font-monospace small">
+                                    [
+                                    {% for p in step.prev %}
+                                    {{ p }}{% if not loop.last %}, {% endif %}
+                                    {% endfor %}
+                                    ]
+                                </td>
+                                <td>{{ step.message }}</td>
+                            </tr>
                             {% endfor %}
                         </tbody>
                     </table>
@@ -507,360 +530,362 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/vis-network@9.1.9/standalone/umd/vis-network.min.js"></script>
     <script>
-        (function() {
+        (function () {
             function initVisualizer() {
-                const graphData = {{ graph|tojson|safe if graph else 'null' }};
-                const depotNode = {{ depot_node }};
-                const dijkstraSteps = {{ dijkstra_steps|tojson|safe }};
-                
-                console.log("Visualizer loaded:", { graphData, depotNode, dijkstraSteps });
-                if (!graphData || !dijkstraSteps || dijkstraSteps.length === 0) {
-                    console.warn("Visualizer returned early: missing data.");
-                    return;
+                const graphData = {{ graph| tojson | safe if graph else 'null'
+            }
+        };
+        const depotNode = {{ depot_node }};
+        const dijkstraSteps = {{ dijkstra_steps| tojson | safe }};
+
+        console.log("Visualizer loaded:", { graphData, depotNode, dijkstraSteps });
+        if (!graphData || !dijkstraSteps || dijkstraSteps.length === 0) {
+            console.warn("Visualizer returned early: missing data.");
+            return;
+        }
+
+        try {
+            const container = document.getElementById('dijkstra-graph-container');
+            const nodes = [];
+            const edges = [];
+            const numNodes = graphData.length;
+
+            // Initialize standard nodes
+            for (let i = 0; i < numNodes; i++) {
+                const isDepot = (i === depotNode);
+                nodes.push({
+                    id: i,
+                    label: `Node ${i}${isDepot ? '\n(Depot)' : ''}`,
+                    shape: 'dot',
+                    size: isDepot ? 25 : 20,
+                    font: { color: '#212529', face: 'system-ui', size: 14, bold: { color: '#212529' } }
+                });
+            }
+
+            let isSymmetric = true;
+            for (let i = 0; i < numNodes; i++) {
+                for (let j = 0; j < numNodes; j++) {
+                    if (graphData[i][j] !== graphData[j][i]) {
+                        isSymmetric = false;
+                        break;
+                    }
+                }
+                if (!isSymmetric) break;
+            }
+
+            const addedEdges = new Set();
+            for (let i = 0; i < numNodes; i++) {
+                for (let j = 0; j < numNodes; j++) {
+                    const weight = graphData[i][j];
+                    if (weight > 0) {
+                        const edgeId = isSymmetric
+                            ? `edge-${Math.min(i, j)}-${Math.max(i, j)}`
+                            : `edge-${i}-${j}`;
+
+                        if (isSymmetric) {
+                            if (!addedEdges.has(edgeId)) {
+                                addedEdges.add(edgeId);
+                                edges.push({
+                                    id: edgeId,
+                                    from: i,
+                                    to: j,
+                                    label: String(weight),
+                                    font: { align: 'horizontal', size: 12, color: '#212529', face: 'system-ui', background: '#ffffff' },
+                                    color: { color: '#dee2e6' },
+                                    width: 1.5
+                                });
+                            }
+                        } else {
+                            edges.push({
+                                id: edgeId,
+                                from: i,
+                                to: j,
+                                label: String(weight),
+                                arrows: 'to',
+                                font: { align: 'horizontal', size: 12, color: '#212529', face: 'system-ui', background: '#ffffff' },
+                                color: { color: '#dee2e6' },
+                                width: 1.5
+                            });
+                        }
+                    }
+                }
+            }
+
+            const nodesDataSet = new vis.DataSet(nodes);
+            const edgesDataSet = new vis.DataSet(edges);
+            const data = { nodes: nodesDataSet, edges: edgesDataSet };
+
+            const options = {
+                physics: {
+                    stabilization: false,
+                    barnesHut: {
+                        gravitationalConstant: -2000,
+                        centralGravity: 0.3,
+                        springLength: 95,
+                        springConstant: 0.04,
+                        damping: 0.4,
+                        avoidOverlap: 0.5
+                    }
+                },
+                interaction: {
+                    hover: true
+                }
+            };
+
+            const network = new vis.Network(container, data, options);
+
+            // Disable physics and show graph after initial stabilization to prevent wiggling/shaking
+            network.once('stabilized', function () {
+                console.log("Overview graph stabilized. Disabling physics.");
+                container.style.opacity = '1';
+                network.setOptions({ physics: { enabled: false } });
+            });
+
+            // Enable stabilization and trigger it manually
+            network.setOptions({
+                physics: {
+                    stabilization: {
+                        enabled: true,
+                        iterations: 800
+                    }
+                }
+            });
+            network.stabilize();
+
+            // Step controller state
+            let currentStep = 0;
+            const maxStep = dijkstraSteps.length - 1;
+            let playInterval = null;
+
+            // DOM Elements
+            const stepBadge = document.getElementById('step-badge');
+            const stepMessage = document.getElementById('step-message');
+            const stepDistances = document.getElementById('step-distances');
+            const stepSlider = document.getElementById('step-slider');
+            const btnFirst = document.getElementById('btn-first');
+            const btnPrev = document.getElementById('btn-prev');
+            const btnNext = document.getElementById('btn-next');
+            const btnLast = document.getElementById('btn-last');
+            const btnPlayPause = document.getElementById('btn-play-pause');
+            const playIcon = document.getElementById('play-icon');
+            const speedSlider = document.getElementById('speed-slider');
+
+            // Setup step slider range
+            stepSlider.max = maxStep;
+
+            function goToStep(stepIndex) {
+                if (stepIndex < 0 || stepIndex > maxStep) return;
+                currentStep = stepIndex;
+                stepSlider.value = currentStep;
+                stepBadge.textContent = `Langkah ${currentStep} / ${maxStep}`;
+
+                const stepData = dijkstraSteps[currentStep];
+                stepMessage.textContent = stepData.message;
+
+                // Update distances details panel
+                stepDistances.innerHTML = '';
+                for (let i = 0; i < numNodes; i++) {
+                    const distVal = stepData.dist[i];
+                    const distStr = distVal >= 10 ** 9 ? 'INF' : distVal;
+                    const prevVal = stepData.prev[i];
+                    const prevStr = prevVal === -1 ? 'None' : `Node ${prevVal}`;
+
+                    const isSelected = (i === stepData.selected_node);
+                    const isVisited = stepData.visited.includes(i);
+
+                    let bgStyle = '';
+                    if (isSelected) {
+                        bgStyle = 'background-color: rgba(255, 193, 7, 0.15); font-weight: bold; border-left: 3px solid #ffc107;';
+                    } else if (isVisited) {
+                        bgStyle = 'background-color: rgba(25, 135, 84, 0.08);';
+                    }
+
+                    const item = document.createElement('div');
+                    item.style.cssText = `padding: 2px 6px; margin-bottom: 2px; border-radius: 2px; ${bgStyle}`;
+                    item.innerHTML = `<span>Node ${i}:</span> <span class="float-end">dist = <strong>${distStr}</strong>, prev = <strong>${prevStr}</strong></span>`;
+                    stepDistances.appendChild(item);
                 }
 
-                try {
-                    const container = document.getElementById('dijkstra-graph-container');
-                    const nodes = [];
-                    const edges = [];
-                    const numNodes = graphData.length;
-
-                    // Initialize standard nodes
-                    for (let i = 0; i < numNodes; i++) {
-                        const isDepot = (i === depotNode);
-                        nodes.push({
-                            id: i,
-                            label: `Node ${i}${isDepot ? '\n(Depot)' : ''}`,
-                            shape: 'dot',
-                            size: isDepot ? 25 : 20,
-                            font: { color: '#212529', face: 'system-ui', size: 14, bold: { color: '#212529' } }
-                        });
-                    }
-
-                    let isSymmetric = true;
-                    for (let i = 0; i < numNodes; i++) {
-                        for (let j = 0; j < numNodes; j++) {
-                            if (graphData[i][j] !== graphData[j][i]) {
-                                isSymmetric = false;
-                                break;
-                            }
-                        }
-                        if (!isSymmetric) break;
-                    }
-
-                    const addedEdges = new Set();
-                    for (let i = 0; i < numNodes; i++) {
-                        for (let j = 0; j < numNodes; j++) {
-                            const weight = graphData[i][j];
-                            if (weight > 0) {
-                                const edgeId = isSymmetric 
-                                    ? `edge-${Math.min(i,j)}-${Math.max(i,j)}`
-                                    : `edge-${i}-${j}`;
-                                    
-                                if (isSymmetric) {
-                                    if (!addedEdges.has(edgeId)) {
-                                        addedEdges.add(edgeId);
-                                        edges.push({
-                                            id: edgeId,
-                                            from: i,
-                                            to: j,
-                                            label: String(weight),
-                                            font: { align: 'horizontal', size: 12, color: '#212529', face: 'system-ui', background: '#ffffff' },
-                                            color: { color: '#dee2e6' },
-                                            width: 1.5
-                                        });
-                                    }
-                                } else {
-                                    edges.push({
-                                        id: edgeId,
-                                        from: i,
-                                        to: j,
-                                        label: String(weight),
-                                        arrows: 'to',
-                                        font: { align: 'horizontal', size: 12, color: '#212529', face: 'system-ui', background: '#ffffff' },
-                                        color: { color: '#dee2e6' },
-                                        width: 1.5
-                                    });
-                                }
-                            }
+                // Update table rows highlight
+                for (let s = 0; s <= maxStep; s++) {
+                    const row = document.getElementById(`dijkstra-step-row-${s}`);
+                    if (row) {
+                        if (s === currentStep) {
+                            row.classList.add('table-primary');
+                        } else {
+                            row.classList.remove('table-primary');
                         }
                     }
+                }
 
-                    const nodesDataSet = new vis.DataSet(nodes);
-                    const edgesDataSet = new vis.DataSet(edges);
-                    const data = { nodes: nodesDataSet, edges: edgesDataSet };
+                // Update graph nodes style dynamically
+                const updatedNodes = [];
+                for (let i = 0; i < numNodes; i++) {
+                    const isDepot = (i === depotNode);
+                    const isSelected = (i === stepData.selected_node);
+                    const isVisited = stepData.visited.includes(i);
+                    const distVal = stepData.dist[i];
+                    const isReachable = distVal < 10 ** 9;
 
-                    const options = {
-                        physics: {
-                            stabilization: false,
-                            barnesHut: {
-                                gravitationalConstant: -2000,
-                                centralGravity: 0.3,
-                                springLength: 95,
-                                springConstant: 0.04,
-                                damping: 0.4,
-                                avoidOverlap: 0.5
-                            }
+                    let bgColor = '#f5f5f5';
+                    let borderColor = '#bdbdbd';
+                    let fontColor = '#212529';
+                    let size = 18;
+
+                    if (isSelected) {
+                        bgColor = '#ffe082';
+                        borderColor = '#ffb300';
+                        size = 26;
+                    } else if (isVisited) {
+                        bgColor = '#c8e6c9';
+                        borderColor = '#4caf50';
+                        size = 22;
+                    } else if (isReachable) {
+                        bgColor = '#bbdefb';
+                        borderColor = '#2196f3';
+                        size = 20;
+                    }
+
+                    const labelNode = `Node ${i}${isDepot ? '\n(Depot)' : ''}\n(${distVal >= 10 ** 9 ? 'INF' : 'd: ' + distVal})`;
+
+                    updatedNodes.push({
+                        id: i,
+                        label: labelNode,
+                        color: {
+                            background: bgColor,
+                            border: borderColor,
+                            highlight: { background: bgColor, border: borderColor }
                         },
-                        interaction: {
-                            hover: true
-                        }
-                    };
-
-                    const network = new vis.Network(container, data, options);
-
-                    // Disable physics and show graph after initial stabilization to prevent wiggling/shaking
-                    network.once('stabilized', function() {
-                        console.log("Overview graph stabilized. Disabling physics.");
-                        container.style.opacity = '1';
-                        network.setOptions({ physics: { enabled: false } });
+                        font: { color: fontColor, face: 'system-ui', size: 14, bold: { color: fontColor } },
+                        size: size
                     });
+                }
+                nodesDataSet.update(updatedNodes);
 
-                    // Enable stabilization and trigger it manually
-                    network.setOptions({
-                        physics: {
-                            stabilization: {
-                                enabled: true,
-                                iterations: 800
-                            }
-                        }
-                    });
-                    network.stabilize();
+                // Update graph edges style dynamically
+                const shortestPathEdges = new Set();
+                const newlyRelaxedEdges = new Set();
 
-                    // Step controller state
-                    let currentStep = 0;
-                    const maxStep = dijkstraSteps.length - 1;
-                    let playInterval = null;
+                for (let v = 0; v < numNodes; v++) {
+                    const p = stepData.prev[v];
+                    if (p !== -1) {
+                        const edgeId = isSymmetric
+                            ? `edge-${Math.min(p, v)}-${Math.max(p, v)}`
+                            : `edge-${p}-${v}`;
 
-                    // DOM Elements
-                    const stepBadge = document.getElementById('step-badge');
-                    const stepMessage = document.getElementById('step-message');
-                    const stepDistances = document.getElementById('step-distances');
-                    const stepSlider = document.getElementById('step-slider');
-                    const btnFirst = document.getElementById('btn-first');
-                    const btnPrev = document.getElementById('btn-prev');
-                    const btnNext = document.getElementById('btn-next');
-                    const btnLast = document.getElementById('btn-last');
-                    const btnPlayPause = document.getElementById('btn-play-pause');
-                    const playIcon = document.getElementById('play-icon');
-                    const speedSlider = document.getElementById('speed-slider');
-
-                    // Setup step slider range
-                    stepSlider.max = maxStep;
-
-                    function goToStep(stepIndex) {
-                        if (stepIndex < 0 || stepIndex > maxStep) return;
-                        currentStep = stepIndex;
-                        stepSlider.value = currentStep;
-                        stepBadge.textContent = `Langkah ${currentStep} / ${maxStep}`;
-                        
-                        const stepData = dijkstraSteps[currentStep];
-                        stepMessage.textContent = stepData.message;
-
-                        // Update distances details panel
-                        stepDistances.innerHTML = '';
-                        for (let i = 0; i < numNodes; i++) {
-                            const distVal = stepData.dist[i];
-                            const distStr = distVal >= 10**9 ? 'INF' : distVal;
-                            const prevVal = stepData.prev[i];
-                            const prevStr = prevVal === -1 ? 'None' : `Node ${prevVal}`;
-                            
-                            const isSelected = (i === stepData.selected_node);
-                            const isVisited = stepData.visited.includes(i);
-                            
-                            let bgStyle = '';
-                            if (isSelected) {
-                                bgStyle = 'background-color: rgba(255, 193, 7, 0.15); font-weight: bold; border-left: 3px solid #ffc107;';
-                            } else if (isVisited) {
-                                bgStyle = 'background-color: rgba(25, 135, 84, 0.08);';
-                            }
-                            
-                            const item = document.createElement('div');
-                            item.style.cssText = `padding: 2px 6px; margin-bottom: 2px; border-radius: 2px; ${bgStyle}`;
-                            item.innerHTML = `<span>Node ${i}:</span> <span class="float-end">dist = <strong>${distStr}</strong>, prev = <strong>${prevStr}</strong></span>`;
-                            stepDistances.appendChild(item);
-                        }
-
-                        // Update table rows highlight
-                        for (let s = 0; s <= maxStep; s++) {
-                            const row = document.getElementById(`dijkstra-step-row-${s}`);
-                            if (row) {
-                                if (s === currentStep) {
-                                    row.classList.add('table-primary');
-                                } else {
-                                    row.classList.remove('table-primary');
-                                }
-                            }
-                        }
-
-                        // Update graph nodes style dynamically
-                        const updatedNodes = [];
-                        for (let i = 0; i < numNodes; i++) {
-                            const isDepot = (i === depotNode);
-                            const isSelected = (i === stepData.selected_node);
-                            const isVisited = stepData.visited.includes(i);
-                            const distVal = stepData.dist[i];
-                            const isReachable = distVal < 10**9;
-
-                            let bgColor = '#f5f5f5';
-                            let borderColor = '#bdbdbd';
-                            let fontColor = '#212529';
-                            let size = 18;
-
-                            if (isSelected) {
-                                bgColor = '#ffe082';
-                                borderColor = '#ffb300';
-                                size = 26;
-                            } else if (isVisited) {
-                                bgColor = '#c8e6c9';
-                                borderColor = '#4caf50';
-                                size = 22;
-                            } else if (isReachable) {
-                                bgColor = '#bbdefb';
-                                borderColor = '#2196f3';
-                                size = 20;
-                            }
-
-                            const labelNode = `Node ${i}${isDepot ? '\n(Depot)' : ''}\n(${distVal >= 10**9 ? 'INF' : 'd: ' + distVal})`;
-
-                            updatedNodes.push({
-                                id: i,
-                                label: labelNode,
-                                color: {
-                                    background: bgColor,
-                                    border: borderColor,
-                                    highlight: { background: bgColor, border: borderColor }
-                                },
-                                font: { color: fontColor, face: 'system-ui', size: 14, bold: { color: fontColor } },
-                                size: size
-                            });
-                        }
-                        nodesDataSet.update(updatedNodes);
-
-                        // Update graph edges style dynamically
-                        const shortestPathEdges = new Set();
-                        const newlyRelaxedEdges = new Set();
-
-                        for (let v = 0; v < numNodes; v++) {
-                            const p = stepData.prev[v];
-                            if (p !== -1) {
-                                const edgeId = isSymmetric 
-                                    ? `edge-${Math.min(p,v)}-${Math.max(p,v)}`
-                                    : `edge-${p}-${v}`;
-                                
-                                if (p === stepData.selected_node && !stepData.visited.includes(v)) {
-                                    newlyRelaxedEdges.add(edgeId);
-                                } else {
-                                    shortestPathEdges.add(edgeId);
-                                }
-                            }
-                        }
-
-                        const updatedEdges = [];
-                        edges.forEach(edge => {
-                            let color = '#dee2e6';
-                            let width = 1.5;
-                            let dashes = false;
-
-                            if (newlyRelaxedEdges.has(edge.id)) {
-                                color = '#fd7e14';
-                                width = 4;
-                            } else if (shortestPathEdges.has(edge.id)) {
-                                color = '#198754';
-                                width = 3.5;
-                            }
-
-                            updatedEdges.push({
-                                id: edge.id,
-                                color: { color: color, highlight: color },
-                                width: width,
-                                dashes: dashes
-                            });
-                        });
-                        edgesDataSet.update(updatedEdges);
-
-                        // Enable/disable navigation buttons
-                        btnFirst.disabled = (currentStep === 0);
-                        btnPrev.disabled = (currentStep === 0);
-                        btnNext.disabled = (currentStep === maxStep);
-                        btnLast.disabled = (currentStep === maxStep);
-                    }
-
-                    // Expose globally for row clicking
-                    window.goToDijkstraStep = function(stepIndex) {
-                        pauseAutoplay();
-                        goToStep(stepIndex);
-                    };
-
-                    function playNext() {
-                        if (currentStep < maxStep) {
-                            goToStep(currentStep + 1);
+                        if (p === stepData.selected_node && !stepData.visited.includes(v)) {
+                            newlyRelaxedEdges.add(edgeId);
                         } else {
-                            pauseAutoplay();
+                            shortestPathEdges.add(edgeId);
                         }
                     }
+                }
 
-                    function startAutoplay() {
-                        if (currentStep === maxStep) {
-                            goToStep(0);
-                        }
-                        // Invert the speed value: left (500) becomes 3000ms delay (slow), right (3000) becomes 500ms delay (fast)
-                        const speed = 3500 - parseInt(speedSlider.value);
-                        playInterval = setInterval(playNext, speed);
-                        playIcon.textContent = 'Pause';
-                        btnPlayPause.classList.remove('btn-primary');
-                        btnPlayPause.classList.add('btn-warning');
+                const updatedEdges = [];
+                edges.forEach(edge => {
+                    let color = '#dee2e6';
+                    let width = 1.5;
+                    let dashes = false;
+
+                    if (newlyRelaxedEdges.has(edge.id)) {
+                        color = '#fd7e14';
+                        width = 4;
+                    } else if (shortestPathEdges.has(edge.id)) {
+                        color = '#198754';
+                        width = 3.5;
                     }
 
-                    function pauseAutoplay() {
-                        if (playInterval) {
-                            clearInterval(playInterval);
-                            playInterval = null;
-                        }
-                        playIcon.textContent = 'Play';
-                        btnPlayPause.classList.remove('btn-warning');
-                        btnPlayPause.classList.add('btn-primary');
-                    }
-
-                    // Event Listeners
-                    btnFirst.addEventListener('click', () => { pauseAutoplay(); goToStep(0); });
-                    btnPrev.addEventListener('click', () => { pauseAutoplay(); goToStep(currentStep - 1); });
-                    btnNext.addEventListener('click', () => { pauseAutoplay(); goToStep(currentStep + 1); });
-                    btnLast.addEventListener('click', () => { pauseAutoplay(); goToStep(maxStep); });
-
-                    btnPlayPause.addEventListener('click', () => {
-                        if (playInterval) {
-                            pauseAutoplay();
-                        } else {
-                            startAutoplay();
-                        }
+                    updatedEdges.push({
+                        id: edge.id,
+                        color: { color: color, highlight: color },
+                        width: width,
+                        dashes: dashes
                     });
+                });
+                edgesDataSet.update(updatedEdges);
 
-                    stepSlider.addEventListener('input', (e) => {
-                        pauseAutoplay();
-                        goToStep(parseInt(e.target.value));
-                    });
+                // Enable/disable navigation buttons
+                btnFirst.disabled = (currentStep === 0);
+                btnPrev.disabled = (currentStep === 0);
+                btnNext.disabled = (currentStep === maxStep);
+                btnLast.disabled = (currentStep === maxStep);
+            }
 
-                    speedSlider.addEventListener('input', () => {
-                        if (playInterval) {
-                            pauseAutoplay();
-                            startAutoplay();
-                        }
-                    });
+            // Expose globally for row clicking
+            window.goToDijkstraStep = function (stepIndex) {
+                pauseAutoplay();
+                goToStep(stepIndex);
+            };
 
-                    // Initialize first step
-                    goToStep(0);
-                } catch (err) {
-                    console.error("Visualizer initialization failed:", err);
+            function playNext() {
+                if (currentStep < maxStep) {
+                    goToStep(currentStep + 1);
+                } else {
+                    pauseAutoplay();
                 }
             }
 
-            if (document.readyState !== 'loading') {
-                initVisualizer();
-            } else {
-                document.addEventListener('DOMContentLoaded', initVisualizer);
+            function startAutoplay() {
+                if (currentStep === maxStep) {
+                    goToStep(0);
+                }
+                // Invert the speed value: left (500) becomes 3000ms delay (slow), right (3000) becomes 500ms delay (fast)
+                const speed = 3500 - parseInt(speedSlider.value);
+                playInterval = setInterval(playNext, speed);
+                playIcon.textContent = 'Pause';
+                btnPlayPause.classList.remove('btn-primary');
+                btnPlayPause.classList.add('btn-warning');
             }
-        })();
+
+            function pauseAutoplay() {
+                if (playInterval) {
+                    clearInterval(playInterval);
+                    playInterval = null;
+                }
+                playIcon.textContent = 'Play';
+                btnPlayPause.classList.remove('btn-warning');
+                btnPlayPause.classList.add('btn-primary');
+            }
+
+            // Event Listeners
+            btnFirst.addEventListener('click', () => { pauseAutoplay(); goToStep(0); });
+            btnPrev.addEventListener('click', () => { pauseAutoplay(); goToStep(currentStep - 1); });
+            btnNext.addEventListener('click', () => { pauseAutoplay(); goToStep(currentStep + 1); });
+            btnLast.addEventListener('click', () => { pauseAutoplay(); goToStep(maxStep); });
+
+            btnPlayPause.addEventListener('click', () => {
+                if (playInterval) {
+                    pauseAutoplay();
+                } else {
+                    startAutoplay();
+                }
+            });
+
+            stepSlider.addEventListener('input', (e) => {
+                pauseAutoplay();
+                goToStep(parseInt(e.target.value));
+            });
+
+            speedSlider.addEventListener('input', () => {
+                if (playInterval) {
+                    pauseAutoplay();
+                    startAutoplay();
+                }
+            });
+
+            // Initialize first step
+            goToStep(0);
+        } catch (err) {
+            console.error("Visualizer initialization failed:", err);
+        }
+            }
+
+        if (document.readyState !== 'loading') {
+            initVisualizer();
+        } else {
+            document.addEventListener('DOMContentLoaded', initVisualizer);
+        }
+        }) ();
     </script>
 </body>
 
